@@ -1,0 +1,22 @@
+{
+  "name": "nutrify-v.1.0",
+  "version": "1.0.0",
+  "description": "",
+  "main": "backend/app.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wannepain/Nutrify-v.1.0.git"
+  },
+  "author": "Marek Wannepain",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.19.2",
+    "node": "^18.20.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  }
+}
