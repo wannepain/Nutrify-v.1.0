@@ -1,9 +1,11 @@
-import React from 'react';
+import React from "react";
+import NavBar from "./NavBar";
 
 function App() {
+
   return (
     <div>
-      <h1>hello world</h1>
+      <NavBar />
     </div>
   );
 }

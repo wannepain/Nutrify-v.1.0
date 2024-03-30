@@ -1,0 +1,14 @@
+/// TO DO:
+/Front end:
+    Done -- Set up React
+    Create sign up/ log in part
+    Create homepage, where weekly menu will be displayed
+    Create Recipe submission 
+    Create API reuest for all this data
+    
+
+/Back end: 
+    Create API routes for data retrieving 
+    Create API Authorisation
+    Create user authentication 
+
