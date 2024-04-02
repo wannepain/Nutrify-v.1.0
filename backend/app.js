@@ -1,5 +1,5 @@
 import Express from "express";
-// import env from "dotenv";
+import env from "dotenv";
 import pg from "pg";
 import bodyParser from "body-parser"
 import passport from "passport";
@@ -8,6 +8,7 @@ import  {Strategy}  from "passport-local";
 import cors from "cors";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import GoogleStrategy from "passport-google-oauth2";
 
 const app = Express();
 const port = 3000;
@@ -20,8 +21,8 @@ const db = new pg.Client({
     port: 5432
 });
 
-// dotenv.config();
-
+env.config();
+app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
 app.use(session({
@@ -78,8 +79,21 @@ app.post("/signup", async (req, res) => {
         res.sendStatus(500);
     }
 });
+app.post("/signup/nutrition", async (req, res)=>{ //must have a username parameter
+    const {username, allergies, diet, weight, height, goal, gender, age, actiFac} = req.body;
+    try {
+        const userExists = await db.query("SELECT id FROM users WHERE username = $1", [username]);
+        if (userExists.rows.length===0) {
+            res.status(409).json({message:"user already exists"});
+        } else {
+            
+        }
+    } catch (error) {
+        
+    }
+})
 // Authenticate route 
-app.post('/login', function(req, res, next) {
+app.post('/login/local', function(req, res, next) {
     passport.authenticate('local', function(err, user, info) {
       if (err) { 
         return res.status(500).json({ message: "Internal server error" });
@@ -96,69 +110,6 @@ app.post('/login', function(req, res, next) {
       });
     })(req, res, next);
   });
-  
-// app.post("/authenticate", async (req, res) => {
-//     try {
-//         // Trim the username field to remove any extra spaces
-//         const username = req.body.username.trim();
-//         const result = await db.query("SELECT * FROM users WHERE username = $1", [username]);
-//         console.log(req.body, result);
-//         if (result.rows.length === 1) {
-//             const user = result.rows[0];
-//             // Compare hashed passwords
-//             bcrypt.compare(req.body.password, result.rows[0].password, (err, result)=>{
-//              if (err) {
-//                 console.log(err);
-//                 res.sendStatus(500);
-//              } else {
-//                 if (result) {
-//                     console.log("User authenticated");
-//                     res.send(user); // Send success response
-//                 } else {
-//                     console.log("Incorrect password");
-//                     res.sendStatus(401); // Unauthorized
-//                 }
-//              }   
-//             })
-//         } else {
-//             console.log("User not found");
-//             res.sendStatus(404); // Not found
-//         }
-//     } catch (error) {
-//         console.log("Error occurred:", error);
-//         res.sendStatus(500); // Internal server error
-//     }
-// });
-
-// app.post("/login", passport.authenticate("local", {
-//     successRedirect: "/loginsuccess",
-//     failureRedirect: "/loginfailure",
-// }));
-
-// app.get("/loginfailure", (req, res)=>{
-//     console.log(req);
-//     console.log(req.user);
-//     res.sendStatus(404)
-// });
-
-// app.get("/loginsuccess", (req, res)=>{
-//     res.sendStatus(200);
-// });
-
-// app.get("/", async (req, res)=>{
-//     let result;
-//     try {
-//         result =  await db.query("SELECT username FROM users WHERE id = 1");
-//         console.log(result)
-//     } catch (error) {
-//         result = error;
-//         console.log(result)
-//     }
-//     res.send(result);
-// })
-
-
-
 
 // Passport local strategy configuration
 passport.use(new Strategy(
@@ -204,6 +155,37 @@ passport.use(new Strategy(
     }
   ));
 
+// passport.use(
+//     new GoogleStrategy({
+//     clientID:     process.env.GOOGLE_CLIENT_ID,
+//     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+//     callbackURL: "http://localhost:3000/auth/google/",
+//     passReqToCallback   : true
+//   },
+//   async function(request, accessToken, refreshToken, profile, done) {
+//     // User.findOrCreate({ googleId: profile.id }, function (err, user) {
+//     //   return done(err, user);
+//     // });
+//     console.log(profile);
+//     try {
+//         const userExists = await db.query("SELECT * FROM users WHERE username = $1",
+//             [profile.email]
+//         );
+//         if (userExists.rows.length === 0) {
+//             const newUser = await db.query("INSERT INTO users (username, password) VALUES ($1, $2) RETURNING *", [profile.email, "google"]);
+//             const user = newUser.rows[0];
+//             console.log(user);
+//             return done(null, user);
+//         } else {
+//             console.log("user already added", userExists.rows[0]);
+//             return done(null, userExists.rows[0]);
+//         }
+//     } catch (error) {
+//         console.log(error)
+//         return done(error);
+//     }
+//   }
+// ));
 
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);

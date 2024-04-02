@@ -1,13 +1,14 @@
 import React from "react";
-import SignUp from "./SignUp";
+import LogIn from "./LogIn";
 import axios from "axios";
 import { useState } from "react";
 
 function App() {
-  
+  const [token, setToken] = useState(null);
+  const [user, setUser] = useState(null);
   return (
     <div>
-      <SignUp />
+      <LogIn />
     </div>
   );
 }
