@@ -29,6 +29,7 @@ input{
 }
 h1{
     font-size: 2rem;
+    user-select: none;
 }
 input:focus{
     outline: none;
@@ -41,13 +42,12 @@ input:focus{
 .topInput{
     border-top-right-radius: 0.5rem;
     border-top-left-radius: 0.5rem;
-    margin-top: 1rem;
+    
 }
 .bottomInput{
     border-bottom-left-radius: 0.5rem;
     border-bottom-right-radius: 0.5rem;
     border-top: none;
-    margin-bottom: 1rem;
 }
 .formBtn{
     border-radius: 0.5rem;
@@ -57,6 +57,44 @@ input:focus{
     background-color: #101820;
     color: #FDFDFF;
     box-shadow: 0px 0px 4px #101820 ;
+    user-select: none;
+    width: 100%;
+}
+.inputContainer{
+    width: 100%;
+    height: fit-content;
+    box-shadow: 0px 0px 4px #101820 ;
+    margin-bottom: 1rem;
+    margin-top: 1rem;
+    border-radius: 0.5rem;
+    display: flex;
+    flex-direction: column;
+}
+#error{
+    margin-bottom: 0.5rem;
+    font-size: 1.2rem;
+    max-width: 100%;
+    position: absolute;
+    bottom: 10rem;
+}
+form{
+    align-items: center;
+}
+/*//////////////////HOVER AND FOCUS STYLES /////////////////////////////////*/ 
+/* HOVER: */
+.inputContainer:hover,
+.formBtn:hover{
+    box-shadow: 0px 0px 8px #101820 ;
+    outline: none;
+}
+input:focus{
+    box-shadow: 0px 0px 2px #101820 inset;
+}
+.formBtn:focus{
+    outline: none;
+    box-shadow: 0px 0px 8px #FDFDFF
 }
 
-/*//////////////////HOVER AND FOCUS STYLES /////////////////////////////////*/ 
+/* /////////////////////////////MEDIA QUERIES///////////////////////////////// */
+
+
