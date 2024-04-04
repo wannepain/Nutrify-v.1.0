@@ -1,4 +1,4 @@
-import Express from "express";
+import Express, { query } from "express";
 import env from "dotenv";
 import pg from "pg";
 import bodyParser from "body-parser"
@@ -157,10 +157,14 @@ app.post("/add/recipe", async (req, res) => {
 });
 
 app.post("/dailyMenu", async (req, res) => {
+    //expect a json in this format:
+    // {
+    //     "username": "Marek"
+    //   }
     try {
         const userExists = await db.query("SELECT id FROM users WHERE username = $1", [req.body.username]);
         if (userExists.rows.length === 0) {
-            return res.status(409).json({ message: "user not found" });
+            return res.status(404).json({ message: "User not found" });
         }
 
         const nutriInfo = await db.query("SELECT * FROM user_nutri_info WHERE user_id = $1", [userExists.rows[0].id]);
@@ -168,32 +172,36 @@ app.post("/dailyMenu", async (req, res) => {
         let totalCalories = 0;
         const selectedRecs = [];
 
-        while (totalCalories <= dailyCalories) {
-            // Calculate the remaining calories available for the daily limit
+        while (totalCalories < dailyCalories) {
             const remainingCalories = dailyCalories - totalCalories;
 
-            // Query to select a random recipe that matches the user's diet and does not contain any allergies
-            const result = await db.query("SELECT * FROM recipes WHERE diet = $1 AND allergies != $2 AND calories <= $3 ORDER BY RANDOM() LIMIT 1", [nutriInfo.rows[0].diet, nutriInfo.rows[0].allergies, remainingCalories]);
+            const selectedRecipeIds = selectedRecs.map(rec => rec.id);
+            let query = `SELECT * FROM recipes WHERE diet = $1 AND allergies != $2 AND calories <= $3`;
+            if (selectedRecipeIds.length > 0) {
+                query += ` AND id NOT IN (${selectedRecipeIds.map((_, i) => `$${i + 4}`).join(', ')})`;
+            }
+            query += ` ORDER BY RANDOM() LIMIT 1`;// creates a query that is acceptable 
 
-            // If no recipes are available or adding the next recipe will exceed the daily calorie limit, break out of the loop
+            const paramsArray = selectedRecipeIds.length > 0 // the number of parameters must match the $ in query
+                ? [nutriInfo.rows[0].diet, nutriInfo.rows[0].allergies, remainingCalories, ...selectedRecipeIds] 
+                : [nutriInfo.rows[0].diet, nutriInfo.rows[0].allergies, remainingCalories];
+
+            const result = await db.query(query, paramsArray);
+
             if (result.rows.length === 0) {
-                console.log("no recipes available");
-                res.status(407).json({message: "no recipes available"})
+                console.log("No more recipes available within calorie limit");
                 break;
             }
 
-            // Add the selected recipe to the list of selected recipes
             const selectedRec = result.rows[0];
             totalCalories += selectedRec.calories;
-
             selectedRecs.push(selectedRec);
         }
 
-        console.log(totalCalories, dailyCalories);
-        res.status(200).json(selectedRecs);
+        return res.status(200).json(selectedRecs);
     } catch (error) {
         console.log(error);
-        res.status(500).json({ message: "error occurred while processing the request" });
+        return res.status(500).json({ message: "Error occurred while processing the request" });
     }
 });
 
