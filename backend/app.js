@@ -8,7 +8,7 @@ import  {Strategy}  from "passport-local";
 import cors from "cors";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import GoogleStrategy from "passport-google-oauth2";
+import cookieParser from "cookie-parser";
 
 const app = Express();
 const port = 3000;
@@ -22,9 +22,13 @@ const db = new pg.Client({
 });
 
 env.config();
+app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cors());
+app.use(cors({
+    origin: 'http://localhost:5173',
+    credentials: true // Allow sending cookies from the client
+  }));
 app.use(session({
     secret: "QWERTY",
     resave: false,
@@ -157,46 +161,15 @@ app.post("/add/recipe", async (req, res) => {
 });
 
 app.post("/dailyMenu", async (req, res) => {
-    //expect a json in this format:
-    // {
-    //     "username": "Marek"
-    //   }
+    const {id} = idFromHeader(req.headers.authorization);
+    if (id === undefined){
+        res.status(407).json({message: "Invalid jwt token"});
+    }
     try {
-        const userExists = await db.query("SELECT id FROM users WHERE username = $1", [req.body.username]);
-        if (userExists.rows.length === 0) {
-            return res.status(404).json({ message: "User not found" });
-        }
-
-        const nutriInfo = await db.query("SELECT * FROM user_nutri_info WHERE user_id = $1", [userExists.rows[0].id]);
-        const dailyCalories = await calcDailyCalories(userExists.rows[0].id);
-        let totalCalories = 0;
-        const selectedRecs = [];
-
-        while (totalCalories < dailyCalories) {
-            const remainingCalories = dailyCalories - totalCalories;
-
-            const selectedRecipeIds = selectedRecs.map(rec => rec.id);
-            let query = `SELECT * FROM recipes WHERE diet = $1 AND allergies != $2 AND calories <= $3`;
-            if (selectedRecipeIds.length > 0) {
-                query += ` AND id NOT IN (${selectedRecipeIds.map((_, i) => `$${i + 4}`).join(', ')})`;
-            }
-            query += ` ORDER BY RANDOM() LIMIT 1`;// creates a query that is acceptable 
-
-            const paramsArray = selectedRecipeIds.length > 0 // the number of parameters must match the $ in query
-                ? [nutriInfo.rows[0].diet, nutriInfo.rows[0].allergies, remainingCalories, ...selectedRecipeIds] 
-                : [nutriInfo.rows[0].diet, nutriInfo.rows[0].allergies, remainingCalories];
-
-            const result = await db.query(query, paramsArray);
-
-            if (result.rows.length === 0) {
-                console.log("No more recipes available within calorie limit");
-                break;
-            }
-
-            const selectedRec = result.rows[0];
-            totalCalories += selectedRec.calories;
-            selectedRecs.push(selectedRec);
-        }
+        const nutriInfo = await db.query("SELECT * FROM user_nutri_info WHERE user_id = $1", [id]);
+        const dailyCalories = await calcDailyCalories(id);
+        const selectedRecs = await selectRecipes(dailyCalories, nutriInfo);
+        console.log(selectedRecs);
 
         return res.status(200).json(selectedRecs);
     } catch (error) {
@@ -204,6 +177,12 @@ app.post("/dailyMenu", async (req, res) => {
         return res.status(500).json({ message: "Error occurred while processing the request" });
     }
 });
+
+app.post("/testPost", (req, res) => {
+    const {id} = idFromHeader(req.headers.authorization);
+    console.log(id);
+});
+
 
 
 // Authenticate route 
@@ -219,7 +198,8 @@ app.post('/login/local', function(req, res, next) {
         if (err) { 
           return res.status(500).json({ message: "Internal server error" });
         }
-        const token = jwt.sign({ username: user.username }, 'QWERTY', { expiresIn: '1h' }); //creates a token for the front end
+        const token = jwt.sign({ id: user.id }, 'QWERTY', { expiresIn: '1h' }); //creates a token for the front end
+        console.log(user.id);
         return res.status(200).json({ message: "Authentication successful", user: user , token: token });
       });
     })(req, res, next);
@@ -282,6 +262,51 @@ async function calcDailyCalories(user_id) {
         return "error occurred while querying";
     }
 };
+function idFromHeader(headerAuthorization) { // expects the req.headers.authorization !!
+    const token = headerAuthorization.split(' ')[1];
+    // Now you can verify the JWT token or use its information as needed
+    // For example:
+    try {
+        const decodedToken = jwt.verify(token, 'QWERTY');
+        // console.log(decodedToken);
+        // res.send('Token verified successfully');
+        return decodedToken
+    } catch (error) {
+        console.error('Token verification failed:', error);
+        // res.status(401).send('Unauthorized');
+        return error
+    }
+}
+async function selectRecipes(dailyCalories, nutriInfo) {
+    let totalCalories = 0;
+    const selectedRecs = [];
+    while (totalCalories < dailyCalories) {
+        const remainingCalories = dailyCalories - totalCalories;
+
+        const selectedRecipeIds = selectedRecs.map(rec => rec.id);
+        let query = `SELECT * FROM recipes WHERE diet = $1 AND allergies != $2 AND calories <= $3`;
+        if (selectedRecipeIds.length > 0) {
+            query += ` AND id NOT IN (${selectedRecipeIds.map((_, i) => `$${i + 4}`).join(', ')})`;
+        }
+        query += ` ORDER BY RANDOM() LIMIT 1`;// creates a query that is acceptable 
+
+        const paramsArray = selectedRecipeIds.length > 0 // the number of parameters must match the $ in query
+            ? [nutriInfo.rows[0].diet, nutriInfo.rows[0].allergies, remainingCalories, ...selectedRecipeIds] 
+            : [nutriInfo.rows[0].diet, nutriInfo.rows[0].allergies, remainingCalories];
+
+        const result = await db.query(query, paramsArray);
+
+        if (result.rows.length === 0) {
+            console.log("No more recipes available within calorie limit");
+            break;
+        }
+
+        const selectedRec = result.rows[0];
+        totalCalories += selectedRec.calories;
+        selectedRecs.push(selectedRec);
+    }
+    return selectedRecs;
+}
 // Passport local strategy configuration
 passport.use(new Strategy(
     async function(username, password, done) {

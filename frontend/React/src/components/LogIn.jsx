@@ -42,11 +42,10 @@ function LogIn(props) {
         // or store authentication token in local storage
         if (response.status === 200){
           const token = response.data.token;
-          const [header, payload, signature] = token.split(".");
+          console.log(token);
+          // const [header, payload, signature] = token.split(".");
           // Set up the cookies
-          document.cookie = `jwtHeader=${header}; Secure; SameSite=Strict`;
-          document.cookie = `jwtPayload=${payload}; Secure; SameSite=Strict`;
-          document.cookie = `jwtSignature=${signature}; Secure; HttpOnly; SameSite=Strict`;
+          document.cookie = `jwtToken=${token}; Secure; HttpOnly; SameSite=Strict`;
           props.setLog(true);
         } 
       } catch (error) {
