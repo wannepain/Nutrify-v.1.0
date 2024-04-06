@@ -46,7 +46,7 @@ function SignUp(props) {
                 <form>
                     <h1 id="SignUp">Sign up</h1>
                     <div>
-                        <Allergies/>
+                        
                     </div>
                 </form>
             </div>
