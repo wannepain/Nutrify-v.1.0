@@ -1,5 +1,7 @@
 import React from "react";
 import axios from "axios";
+import NavBar from "./NavBar";
+import Recipes from "./Recipes";
 function Homescreen(props) {
     axios.interceptors.request.use(
         (config) => {
@@ -14,13 +16,9 @@ function Homescreen(props) {
         }
       );
 
-    async function handleClick(event) {
-        event.preventDefault();
-        const result = await axios.post("http://localhost:3000/dailyMenu", {}, {withCredentials: true});
-        console.log(result);
-    }
-    return <form > 
-        <button onClick={handleClick}>Hello</button>
-    </form>
+    return <div>
+        <Recipes />
+        <NavBar />
+      </div>
 }
 export default Homescreen;

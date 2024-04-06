@@ -160,27 +160,33 @@ app.post("/add/recipe", async (req, res) => {
     }
 });
 
-app.post("/dailyMenu", async (req, res) => {
-    const {id} = idFromHeader(req.headers.authorization);
-    if (id === undefined){
-        res.status(407).json({message: "Invalid jwt token"});
-    }
+app.get("/weeklyRecipes", async (req, res) => {
     try {
-        const nutriInfo = await db.query("SELECT * FROM user_nutri_info WHERE user_id = $1", [id]);
-        const dailyCalories = await calcDailyCalories(id);
-        const selectedRecs = await selectRecipes(dailyCalories, nutriInfo);
-        console.log(selectedRecs);
-
-        return res.status(200).json(selectedRecs);
+        const { id } = idFromHeader(req.headers.authorization);
+        const d = new Date();
+        if (d.getDay() === 0) { // if today is Sunday
+            console.log("today is sunday");
+            const result = await db.query("UPDATE weekly_recipes SET sunday=$1, monday=$2, tuesday=$3, wednesday=$4, thursday=$5, friday=$6, saturday=$7 WHERE userid = $8 RETURNING *", [
+                getDailyMenu(id), getDailyMenu(id), getDailyMenu(id), getDailyMenu(id), getDailyMenu(id), getDailyMenu(id), getDailyMenu(id), id
+            ]); 
+            res.status(200).json({ weekRecipes: result.rows });
+        } else {
+            console.log("different day");
+            const result = await db.query("SELECT * FROM weekly_recipes WHERE userid = $1", [id]);
+            res.status(200).json({ weekRecipes: result.rows });
+        }
     } catch (error) {
-        console.log(error);
-        return res.status(500).json({ message: "Error occurred while processing the request" });
+        console.error("Error retrieving or updating weekly recipes:", error);
+        res.status(500).json({ error: "Internal Server Error" });
     }
 });
 
+
 app.post("/testPost", (req, res) => {
-    const {id} = idFromHeader(req.headers.authorization);
-    console.log(id);
+    const weekday = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"];
+    const d = new Date();
+    let prevDay = weekday[d.getDay() - 1];
+    console.log(prevDay);
 });
 
 
@@ -306,6 +312,23 @@ async function selectRecipes(dailyCalories, nutriInfo) {
         selectedRecs.push(selectedRec);
     }
     return selectedRecs;
+}
+async function getDailyMenu(id) {
+    if (id === undefined){
+        // res.status(407).json({message: "Invalid jwt token"});
+        return "Id cant be undefined"
+    }
+    try {
+        const nutriInfo = await db.query("SELECT * FROM user_nutri_info WHERE user_id = $1", [id]);
+        const dailyCalories = await calcDailyCalories(id);
+        const selectedRecs = await selectRecipes(dailyCalories, nutriInfo);
+        console.log(selectedRecs);
+
+        return selectedRecs;
+    } catch (error) {
+        console.log(error);
+        return "Error occurred while processing the request";
+    }
 }
 // Passport local strategy configuration
 passport.use(new Strategy(

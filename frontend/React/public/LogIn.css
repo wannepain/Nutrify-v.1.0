@@ -27,6 +27,37 @@ input{
     font-size: 1.5rem;
     padding: 1rem;
 }
+#inBtnContainer{
+    display: flex;
+    justify-content: space-evenly;
+}
+#logInBtn, #signUpBtn{
+    background-color: #101820;
+    color: #FDFDFF;
+    border: none;
+    border-radius: 0.5rem;
+    padding: 0.6rem;
+    font-size: 1.5rem;
+    box-shadow: 0px 0px 4px #101820 ;
+    flex-grow: 2;
+    user-select: none;
+}
+#logInBtn{
+    margin-right: 0.5rem;
+}
+#signUpBtn{
+    margin-left: 0.5rem;
+}
+.goBackH2{
+    display: flex;
+    user-select: none;
+}
+.goBackIcon{
+    width: 1rem;
+}
+.goBackH2:hover{
+    text-decoration: underline;
+}
 h1{
     font-size: 2rem;
     user-select: none;
@@ -43,6 +74,12 @@ input:focus{
     border-top-right-radius: 0.5rem;
     border-top-left-radius: 0.5rem;
     
+}
+form{
+    user-select: none;
+}
+.middleInput{
+    border-top: none;
 }
 .bottomInput{
     border-bottom-left-radius: 0.5rem;
@@ -75,7 +112,10 @@ input:focus{
     font-size: 1.2rem;
     max-width: 100%;
     position: absolute;
-    bottom: 10rem;
+    bottom: 1rem;
+    left: 0;
+    width: 100%;
+    text-align: center;
 }
 form{
     align-items: center;
@@ -83,14 +123,18 @@ form{
 /*//////////////////HOVER AND FOCUS STYLES /////////////////////////////////*/ 
 /* HOVER: */
 .inputContainer:hover,
-.formBtn:hover{
+.formBtn:hover, 
+#signUpBtn:hover,
+#logInBtn:hover{
     box-shadow: 0px 0px 8px #101820 ;
     outline: none;
 }
 input:focus{
     box-shadow: 0px 0px 2px #101820 inset;
 }
-.formBtn:focus{
+.formBtn:focus,
+#signUpBtn:focus,
+#logInBtn:focus{
     outline: none;
     box-shadow: 0px 0px 8px #FDFDFF
 }
@@ -98,3 +142,83 @@ input:focus{
 /* /////////////////////////////MEDIA QUERIES///////////////////////////////// */
 
 
+
+/* /////////////////////////////////// STYLES FOR HOMESCREEN ///////////////////////////////////////////////////////////////////////////////////////*/
+/*navbar:*/
+.hiden{
+    display: none;
+}
+li{
+   list-style-type: none;
+}
+ul{
+    padding: 0;
+}
+.navbar ul li a{
+    text-decoration: underline;
+}
+.prevent-select {
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
+  }
+/*MEDIA QUERIES:*/
+@media  screen and (min-width: 720px) and (orientation: landscape){
+    #phoneNavBar{
+        display: none;
+    }
+    .hiden{
+        display: block;
+        position: absolute;
+        top: 0;
+        width: 100%;
+        left: 0;
+        background-color: #101820;
+        height: fit-content;
+    }
+    .hiden ul{
+        display: flex;
+        padding: 0.3rem;
+        align-items: center;
+    }
+    .nutrifyLogo{
+        width: 3rem;
+        filter: invert(68%) sepia(66%) saturate(904%) hue-rotate(360deg) brightness(106%) contrast(105%);
+    }
+    li{
+        height: fit-content;
+    }
+    #linkContainer{
+        display: flex;
+        height: 100%;
+        flex-grow: 2;
+        margin-left: 2rem;
+        flex-direction: row;
+    }
+    .prevent-select{
+        margin-left: 3rem;
+        color: #FFC600;
+    }
+}
+
+#phoneNavBar{
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: #101820;
+    padding: 0.5rem;
+}
+#phoneNavBar ul{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
+button img{
+    width: 3rem;
+    filter: invert(68%) sepia(66%) saturate(904%) hue-rotate(360deg) brightness(106%) contrast(105%);
+}
+.iconBtn{
+    background-color: transparent;
+    border: none;
+}
