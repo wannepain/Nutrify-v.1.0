@@ -1,30 +1,50 @@
-import React from "react";
+import React, {useState} from "react";
 
 function Allergies(props) {
     const [userInput, setUserInput] = useState('');
     const [isMatch, setIsMatch] = useState(false);
+    const [allergens, setAllergens] = useState([]);
+    // const [isAdded, setIsAdded] = useState(false);
+
     function handelInputChange(event) {
         const { value } = event.target;
         setUserInput(value.toLowerCase()); // Convert input to lowercase for case-insensitive comparison
         setIsMatch(false); // Reset match flag when user types
+        props.error(false)
     }
+
     function handleAdd(event) {
-        const options = document.getElementById('allergens_list').options;
-        for (let i = 0; i < options.length; i++) {
-        if (options[i].value.toLowerCase() === userInput) {
-            setIsMatch(true);
-            break;
+        // Check if userInput already exists in allergens array
+        if (allergens.includes(userInput)) {
+            setIsMatch(true); // Indicate that userInput is a duplicate
+            props.error("Allergen already added");
+            setUserInput("");
+        } else {
+            setIsMatch(false); // Reset the flag indicating a duplicate
+            setAllergens([...allergens, userInput]); // Add userInput to allergens state
+            setUserInput(''); // Clear input after adding
         }
-        }
+    }
+    
+
+    function handleRemove(allergenToRemove) {
+        const updatedAllergens = allergens.filter(allergen => allergen !== allergenToRemove);
+        setAllergens(updatedAllergens);
     }
     return (
         <div>
-            <div class="d-flex">
+            <h3>What are you allergic to?</h3>
+            <div id="allergenInputContainer">
                 <input type="text" id="allergenInput" placeholder="wheat" list="allergens_list" value={userInput} onChange={handelInputChange}/>
-                <button type="button" class="btn btn-secondary" id="addAllergenBtn" onClick={handleAdd}>Add</button>
+                <input type="text" id="fakeInput" placeholder="wheat" value={userInput}/>
+                <button type="button" id="addAllergenBtn" onClick={handleAdd}><img src="./../../../public/resources/add_recipe_icon.svg" alt="Add" id="addAllergenIcon"/></button>
             </div>
-            <div class="d-flex flex-row flex-wrap justify-content-start" id="displayDiv">
-                <input type="hidden" name="allergies" id="allergiesHidden" value=""/>
+            <div id="displayDiv">
+                {allergens.map(allergen => (
+                    <React.Fragment key={allergen}>
+                        <button onClick={() => handleRemove(allergen)} className="allergenBtn">{allergen}</button>
+                    </React.Fragment>
+                ))}
             </div>
             <datalist id="allergens_list">
                 <option value="wheat"></option>

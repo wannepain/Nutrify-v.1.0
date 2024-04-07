@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useState }  from "react";
 import LogIn from "./LogIn";
 import Homescreen from "./Homescreen";
 import SignUp from "./SignUp";
 import axios from "axios";
-import { useState } from "react";
+import { useEffect } from "react";
+// import from "react";
 // import jwt from "jsonwebtoken"
 
 function App() {
@@ -28,8 +29,8 @@ function App() {
     
                 // Check if the token is expired
                 if (expirationTime > Date.now()) {
-                    setTokenValid(true);
-                    setIsLoggedIn(true)
+                    // setTokenValid(true);
+                    // setIsLoggedIn(true)
                 } else {
                     console.log('Token has expired.');
                     setTokenValid(false);

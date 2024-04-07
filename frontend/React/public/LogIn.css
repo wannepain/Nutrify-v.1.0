@@ -144,81 +144,168 @@ input:focus{
 
 
 /* /////////////////////////////////// STYLES FOR HOMESCREEN ///////////////////////////////////////////////////////////////////////////////////////*/
-/*navbar:*/
-.hiden{
-    display: none;
-}
-li{
-   list-style-type: none;
-}
-ul{
-    padding: 0;
-}
-.navbar ul li a{
-    text-decoration: underline;
-}
-.prevent-select {
-    -webkit-user-select: none; /* Safari */
-    -ms-user-select: none; /* IE 10 and IE 11 */
-    user-select: none; /* Standard syntax */
-  }
-/*MEDIA QUERIES:*/
-@media  screen and (min-width: 720px) and (orientation: landscape){
-    #phoneNavBar{
+    /*navbar:*/
+    .hiden{
         display: none;
     }
-    .hiden{
-        display: block;
+    li{
+    list-style-type: none;
+    }
+    ul{
+        padding: 0;
+    }
+    .navbar ul li a{
+        text-decoration: underline;
+    }
+    .prevent-select {
+        -webkit-user-select: none; /* Safari */
+        -ms-user-select: none; /* IE 10 and IE 11 */
+        user-select: none; /* Standard syntax */
+    }
+    /*MEDIA QUERIES:*/
+    @media  screen and (min-width: 720px) and (orientation: landscape){
+        #phoneNavBar{
+            display: none;
+        }
+        .hiden{
+            display: block;
+            position: absolute;
+            top: 0;
+            width: 100%;
+            left: 0;
+            background-color: #101820;
+            height: fit-content;
+        }
+        .hiden ul{
+            display: flex;
+            padding: 0.3rem;
+            align-items: center;
+        }
+        .nutrifyLogo{
+            width: 3rem;
+            filter: invert(68%) sepia(66%) saturate(904%) hue-rotate(360deg) brightness(106%) contrast(105%);
+        }
+        li{
+            height: fit-content;
+        }
+        #linkContainer{
+            display: flex;
+            height: 100%;
+            flex-grow: 2;
+            margin-left: 2rem;
+            flex-direction: row;
+        }
+        .prevent-select{
+            margin-left: 3rem;
+            color: #FFC600;
+        }
+    }
+
+    #phoneNavBar{
         position: absolute;
-        top: 0;
-        width: 100%;
+        bottom: 0;
         left: 0;
+        width: 100%;
         background-color: #101820;
-        height: fit-content;
+        padding: 0.5rem;
     }
-    .hiden ul{
+    #phoneNavBar ul{
         display: flex;
-        padding: 0.3rem;
-        align-items: center;
+        flex-direction: row;
+        justify-content: space-around;
     }
-    .nutrifyLogo{
+    button img{
         width: 3rem;
         filter: invert(68%) sepia(66%) saturate(904%) hue-rotate(360deg) brightness(106%) contrast(105%);
     }
-    li{
-        height: fit-content;
+    .iconBtn{
+        background-color: transparent;
+        border: none;
     }
-    #linkContainer{
-        display: flex;
-        height: 100%;
-        flex-grow: 2;
-        margin-left: 2rem;
-        flex-direction: row;
-    }
-    .prevent-select{
-        margin-left: 3rem;
-        color: #FFC600;
-    }
-}
 
-#phoneNavBar{
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background-color: #101820;
-    padding: 0.5rem;
-}
-#phoneNavBar ul{
-    display: flex;
-    flex-direction: row;
-    justify-content: space-around;
-}
-button img{
-    width: 3rem;
-    filter: invert(68%) sepia(66%) saturate(904%) hue-rotate(360deg) brightness(106%) contrast(105%);
-}
-.iconBtn{
-    background-color: transparent;
-    border: none;
-}
+/*/////////////////////STYLES FOR SIGNUP /////////////////////////////////////////////////////////////////////////////////*/
+    /*ALLERGENS*/
+        #allergenInput{
+            flex-grow: 2;
+            border-radius: 0.5rem;
+            padding: 0;
+            padding-left: 1rem;
+            z-index: 2;
+            height: 3rem; 
+            opacity: 0;
+            position: absolute;
+        }
+        #fakeInput{
+            flex-grow: 2;
+            border-radius: 0.5rem;
+            padding: 0;
+            padding-left: 1rem;
+        }
+        #allergenInputContainer{
+            display: flex;
+            width: 100%;
+        }
+        #addAllergenBtn{
+            margin-left: 0.5rem;
+            border-radius: 0.5rem;
+            border: none;
+            height: calc(width);
+            background-color: #101820;
+        }
+        #addAllergenBtn img{
+            filter: invert(100%) sepia(18%) saturate(2206%) hue-rotate(180deg) brightness(99%) contrast(108%);
+        }
+        .allergenBtn{
+            font-size: 1rem;
+            margin-top: 0.5rem;
+            padding: 0.3rem;
+            border: none;
+            border-radius: 0.5rem;
+            background: #101820;
+            color: #FDFDFF;
+            margin-right: 0.5rem;
+        }
+        #displayDiv{
+            max-width: 19rem;
+            display: flex;
+            flex-wrap: wrap;
+            flex-direction: row;
+        }
+    /*DIET*/
+        #dietSelectContainer{
+            display: flex;
+            flex-direction: column;
+            margin-top: 0.1rem;
+        }
+        #mainDietBtn{
+            width: 100%;
+            border-radius: 0.5rem;
+            padding: 0;
+            border: none;
+            background-color: #101820;
+            color: #FDFDFF;
+            font-size: 1.5rem;
+        }
+        #dietTopBtn{
+            border-top-left-radius: 0.5rem;
+            border-top-right-radius: 0.5rem;
+            border: none;
+            border-bottom: 2px solid #101820;
+
+        }
+        #dietMiddleBtn{
+            border: none;
+            border-bottom: 2px solid #101820;
+        }
+        #dietBottomBtn{
+            border-bottom-left-radius: 0.5rem;
+            border-bottom-right-radius: 0.5rem;
+            border: none;
+        }
+        #dietMiddleBtn,
+        #dietBottomBtn,
+        #dietTopBtn{
+            font-size: 1.2rem;
+            background-color: #FDFDFF;
+            color: #101820;
+        }

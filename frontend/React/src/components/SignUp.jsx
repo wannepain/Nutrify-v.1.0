@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import Allergies from "./signUp/Allergies";
+import Diet from "./signUp/Diet";
 
 function SignUp(props) {
     const [isFirstPartDone, setIsFirstPartDone] = useState(false);
@@ -22,8 +23,8 @@ function SignUp(props) {
         } else {
             // Add user to database 
             try {
-                const result = await axios.post("http://localhost:3000/signup",{username: username, password:password})
-                console.log(result);
+                // const result = await axios.post("http://localhost:3000/signup",{username: username, password:password})
+                // console.log(result);
                 setIsFirstPartDone(true);
             } catch (error) {
                 if(error.response.status === 409){
@@ -39,15 +40,20 @@ function SignUp(props) {
         event.preventDefault()
         props.setSignUp(false)
       }
+      function handleBackToFirstPart(event) {
+        setIsFirstPartDone(false)
+      }
     if (isFirstPartDone) {
         return (
             <div>
-                <h2 onClick={handleReturn} className="goBackH2"><img src="./../../public/resources/caret-left.svg" alt="Back" className="goBackIcon"/> Go back</h2>
+                <h2 onClick={handleBackToFirstPart} className="goBackH2"><img src="./../../public/resources/caret-left.svg" alt="Back" className="goBackIcon"/> Go back</h2>
                 <form>
                     <h1 id="SignUp">Sign up</h1>
                     <div>
-                        
+                        <Allergies error={setError}/>
+                        <Diet />
                     </div>
+                    {!error ? null : <p id='error'>{error}</p>}
                 </form>
             </div>
         );
