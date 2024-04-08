@@ -15,14 +15,14 @@ function Diet(props) {
     }
 
     return (
-        <div id="dietContainer">
+        <div id="dietContainer" className="dropdownContainer" onMouseLeave={()=>{setWantToSelect(false) }}>
             <h3>What diet are you following?</h3>
             <div className="dropdown-container">
                 <button type="button" id="mainDietBtn" onClick={handleClick}>
                     {selectedOption === "" ? "Select diet..." : selectedOption}
                 </button>
                 {wantToSelect && (
-                    <div id="dietSelectContainer">
+                    <div id="dietSelectContainer" className="optionsContainer">
                         <button type="button" id="dietTopBtn" onClick={() => handleSelect("Vegan")}>
                             Vegan
                         </button>

@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import axios from "axios";
 import Allergies from "./signUp/Allergies";
 import Diet from "./signUp/Diet";
+import WeightHeight from "./signUp/WeightHeight";
+import GenderAge from "./signUp/GenderAge";
+import GoalActiFac from "./signUp/GoalActiFac";
 
 function SignUp(props) {
     const [isFirstPartDone, setIsFirstPartDone] = useState(false);
@@ -49,10 +52,14 @@ function SignUp(props) {
                 <h2 onClick={handleBackToFirstPart} className="goBackH2"><img src="./../../public/resources/caret-left.svg" alt="Back" className="goBackIcon"/> Go back</h2>
                 <form>
                     <h1 id="SignUp">Sign up</h1>
-                    <div>
+                    <div id="secondSignUpContainer">
                         <Allergies error={setError}/>
                         <Diet />
+                        <WeightHeight />
+                        <GenderAge />
+                        <GoalActiFac />
                     </div>
+                    <button className="formBtn">Sign up</button>
                     {!error ? null : <p id='error'>{error}</p>}
                 </form>
             </div>
