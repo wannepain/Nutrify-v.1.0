@@ -96,11 +96,12 @@ app.post("/signup/nutrition", async (req, res) => { //must have a username param
     //     "age": 30,
     //     "actiFac": "moderate"
     //   }
-    const { username, allergies, diet, weight, height, goal, gender, age, actiFac } = req.body;
+    const { username, allergens: allergies, diet, weight, height, goal, gender, age, activity: actiFac } = req.body;
     try {
         const userExists = await db.query("SELECT id FROM users WHERE username = $1", [username]);
         if (userExists.rows.length === 0) {
             res.status(409).json({ message: "user not found" }); // Assuming you want to return "user found" for conflict
+            console.log("user not found");
         } else {
             try {
                 const result = await db.query("INSERT INTO user_nutri_info (user_id, allergies, diet, current_weight, height, goal, gender, age, acti_fac) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)", [

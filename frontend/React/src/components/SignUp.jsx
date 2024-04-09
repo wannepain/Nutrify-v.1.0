@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Allergies from "./signUp/Allergies";
 import Diet from "./signUp/Diet";
@@ -10,6 +10,9 @@ function SignUp(props) {
     const [isFirstPartDone, setIsFirstPartDone] = useState(false);
     const [values, setValues] = useState({ username: "", password: "", passwordCheck: "" });
     const [error, setError] = useState(false);
+    const [finalObject, setFinalObject] = useState({});
+    const [isUsernameAdded, setIsUsernameAdded] = useState(false);
+    let axiosQuery;
 
     function handleChange(event) {
         const { name, value } = event.target;
@@ -26,9 +29,10 @@ function SignUp(props) {
         } else {
             // Add user to database 
             try {
-                // const result = await axios.post("http://localhost:3000/signup",{username: username, password:password})
-                // console.log(result);
+                const result = await axios.post("http://localhost:3000/signup",{username: username, password:password})
+                console.log(result);
                 setIsFirstPartDone(true);
+                setFinalObject(prevFinalObject => ({ ...prevFinalObject, username: values.username }));
             } catch (error) {
                 if(error.response.status === 409){
                     setError("Username already exists");
@@ -43,9 +47,35 @@ function SignUp(props) {
         event.preventDefault()
         props.setSignUp(false)
       }
-      function handleBackToFirstPart(event) {
+    function handleBackToFirstPart(event) {
         setIsFirstPartDone(false)
-      }
+    }
+    function addToObj(object) {
+        // Include username in the object obtained from child components
+        const updatedObject = { ...object };
+        setFinalObject(prevFinalObject => ({ ...prevFinalObject, ...object}));
+    }
+    
+    
+    // useEffect(() => {
+    //     console.log(values.username);
+    //     if (values.username !== "" && !isUsernameAdded) {
+    //         setFinalObject(prevFinalObject => ({ ...prevFinalObject, username: values.username }));
+    //         setIsUsernameAdded(true);
+    //     }
+    // }, [values.username, isUsernameAdded]); 
+    
+    async function handleSignUp(event) {
+        event.preventDefault();
+        console.log(finalObject);
+        try {
+            const result = await axios.post("http://localhost:3000/signup/nutrition", finalObject)
+            console.log(result);
+        } catch (error) {
+            console.log(error);
+        }
+        
+    }
     if (isFirstPartDone) {
         return (
             <div>
@@ -53,13 +83,13 @@ function SignUp(props) {
                 <form>
                     <h1 id="SignUp">Sign up</h1>
                     <div id="secondSignUpContainer">
-                        <Allergies error={setError}/>
-                        <Diet />
-                        <WeightHeight />
-                        <GenderAge />
-                        <GoalActiFac />
+                        <Allergies error={setError} obj={addToObj}/>
+                        <Diet obj={addToObj}/>
+                        <WeightHeight obj={addToObj}/>
+                        <GenderAge obj={addToObj}/>
+                        <GoalActiFac obj={addToObj}/>
                     </div>
-                    <button className="formBtn">Sign up</button>
+                    <button className="formBtn" onClick={handleSignUp}>Sign up</button>
                     {!error ? null : <p id='error'>{error}</p>}
                 </form>
             </div>

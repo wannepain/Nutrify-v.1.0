@@ -1,36 +1,42 @@
-import React, {useState} from "react";
+import React, { useState, useEffect, useRef } from 'react';
 
 function Allergies(props) {
     const [userInput, setUserInput] = useState('');
     const [isMatch, setIsMatch] = useState(false);
     const [allergens, setAllergens] = useState([]);
-    // const [isAdded, setIsAdded] = useState(false);
+    const prevAllergens = useRef([]);
 
     function handelInputChange(event) {
         const { value } = event.target;
-        setUserInput(value.toLowerCase()); // Convert input to lowercase for case-insensitive comparison
-        setIsMatch(false); // Reset match flag when user types
-        props.error(false)
+        setUserInput(value.toLowerCase());
+        setIsMatch(false);
+        props.error(false);
     }
 
     function handleAdd(event) {
-        // Check if userInput already exists in allergens array
         if (allergens.includes(userInput)) {
-            setIsMatch(true); // Indicate that userInput is a duplicate
+            setIsMatch(true);
             props.error("Allergen already added");
             setUserInput("");
         } else {
-            setIsMatch(false); // Reset the flag indicating a duplicate
-            setAllergens([...allergens, userInput]); // Add userInput to allergens state
-            setUserInput(''); // Clear input after adding
+            setIsMatch(false);
+            setAllergens(prevAllergens => [...prevAllergens, userInput.toLocaleLowerCase()]);
+            setUserInput('');
         }
     }
-    
 
     function handleRemove(allergenToRemove) {
-        const updatedAllergens = allergens.filter(allergen => allergen !== allergenToRemove);
-        setAllergens(updatedAllergens);
+        setAllergens(prevAllergens => prevAllergens.filter(allergen => allergen !== allergenToRemove));
     }
+
+    useEffect(() => {
+        // Check if allergens have changed
+        if (JSON.stringify(prevAllergens.current) !== JSON.stringify(allergens)) {
+            prevAllergens.current = allergens; // Update the previous value
+            props.obj({ allergens });
+        }
+    }, [allergens, props]);
+
     return (
         <div>
             <h3>What are you allergic to?</h3>
