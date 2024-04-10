@@ -6,7 +6,7 @@ function NavBar(props) {
     <div className="navbar hiden">
         <ul>
             <li><img src="./../../public/resources/nutrify.svg" alt="nutrify" className="nutrifyLogo"/></li>
-            <li id="linkContainer"><a href="/premium/homepage" class="prevent-select">Home</a><a href="/premium/recipe" class="prevent-select">Add recipe</a></li>
+            <li id="linkContainer"><a href="/premium/homepage" className="prevent-select">Home</a><a href="/premium/recipe" className="prevent-select">Add recipe</a></li>
         </ul>
     </div>
     <footer id="phoneNavBar">

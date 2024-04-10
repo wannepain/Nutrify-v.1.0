@@ -70,7 +70,10 @@ function SignUp(props) {
         console.log(finalObject);
         try {
             const result = await axios.post("http://localhost:3000/signup/nutrition", finalObject)
-            console.log(result);
+            if (result.status === 200) {
+                props.setSign(true);
+            }
+            console.log(result.data.rows);
         } catch (error) {
             console.log(error);
         }

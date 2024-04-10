@@ -16,8 +16,8 @@ function Homescreen(props) {
         }
       );
 
-    return <div>
-        <Recipes />
+    return <div id="homescreenDiv">
+        <Recipes recipesArray={["hello"]}/>
         <NavBar />
       </div>
 }

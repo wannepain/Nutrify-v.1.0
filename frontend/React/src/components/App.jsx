@@ -1,6 +1,6 @@
 import React, { useState }  from "react";
 import LogIn from "./LogIn";
-import Homescreen from "./Homescreen";
+import Homescreen from "./homescreen/Homescreen";
 import SignUp from "./SignUp";
 import axios from "axios";
 import { useEffect } from "react";
@@ -44,10 +44,12 @@ function App() {
             setTokenValid(false);
         }
     }, []); // Empty dependency array ensures this effect runs only once on mount
-
+  function handleProp() {
+    setIsLoggedIn(true);
+  }
   
   if (isLoggedIn){
-    return <div>
+    return <div className="mainDiv">
       <Homescreen />
     </div>
   } else if(logIn){
@@ -56,15 +58,15 @@ function App() {
     </div>
   } else if(signUp){
     return <div>
-      <SignUp setSignUp={setSignUp}/>
+      <SignUp setSignUp={setSignUp} setSign={setIsLoggedIn}/>
     </div>
   } else{
     return (
       <div>
         <h1>Welcome to nutrify</h1>
         <div id="inBtnContainer">
-          <button onClick={()=>setLogIn(true)} id="logInBtn">Log in</button>
-          <button onClick={()=>setSignUp(true)} id="signUpBtn">Sign up</button>
+          <button onClick={()=>setLogIn(true)} id="logInBtn" handleProp={handleProp}>Log in</button>
+          <button onClick={()=>setSignUp(true)} id="signUpBtn" auth={handleProp}>Sign up</button>
         </div>
       </div>
     );
