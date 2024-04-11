@@ -107,6 +107,9 @@ app.post("/signup/nutrition", async (req, res) => { //must have a username param
                 const result = await db.query("INSERT INTO user_nutri_info (user_id, allergies, diet, current_weight, height, goal, gender, age, acti_fac) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)", [
                     userExists.rows[0].id, allergies, diet, weight, height, goal, gender, age, actiFac
                 ]);
+                const result2 = await db.query("INSERT INTO weekly_recipes (sunday, monday, tuesday, wednesday, thursday, friday, saturday, userid) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *", [
+                    getDailyMenu(userExists.rows[0].id), getDailyMenu(userExists.rows[0].id), getDailyMenu(userExists.rows[0].id), getDailyMenu(userExists.rows[0].id), getDailyMenu(userExists.rows[0].id), getDailyMenu(userExists.rows[0].id), getDailyMenu(userExists.rows[0].id), userExists.rows[0].id
+                ]);                
                 res.status(200).json({ message: "users nutrition information added successfully" });
             } catch (error) {
                 console.log(error);
@@ -174,6 +177,7 @@ app.get("/weeklyRecipes", async (req, res) => {
         } else {
             console.log("different day");
             const result = await db.query("SELECT * FROM weekly_recipes WHERE userid = $1", [id]);
+            console.log(result);
             res.status(200).json({ weekRecipes: result.rows });
         }
     } catch (error) {
@@ -205,7 +209,7 @@ app.post('/login/local', function(req, res, next) {
         if (err) { 
           return res.status(500).json({ message: "Internal server error" });
         }
-        const token = jwt.sign({ id: user.id }, 'QWERTY', { expiresIn: '1h' }); //creates a token for the front end
+        const token = jwt.sign({ id: user.id }, 'QWERTY', { expiresIn: '24h' }); //creates a token for the front end
         console.log(user.id);
         return res.status(200).json({ message: "Authentication successful", user: user , token: token });
       });

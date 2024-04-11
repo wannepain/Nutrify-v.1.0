@@ -29,8 +29,8 @@ function App() {
     
                 // Check if the token is expired
                 if (expirationTime > Date.now()) {
-                    // setTokenValid(true);
-                    // setIsLoggedIn(true)
+                    setTokenValid(true);
+                    setIsLoggedIn(true)
                 } else {
                     console.log('Token has expired.');
                     setTokenValid(false);
