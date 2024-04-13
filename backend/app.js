@@ -83,45 +83,105 @@ app.post("/signup", async (req, res) => {
         res.sendStatus(500);
     }
 });
-app.post("/signup/nutrition", async (req, res) => { //must have a username parameter
-    //expects a json in this format:
-    // {
-    //     "username": "Marek",
-    //     "allergies": ["peanuts", "shellfish"],
-    //     "diet": "vegetarian",
-    //     "weight": 70,
-    //     "height": 175,
-    //     "goal": "lose",
-    //     "gender": "m",
-    //     "age": 30,
-    //     "actiFac": "moderate"
-    //   }
-    const { username, allergens: allergies, diet, weight, height, goal, gender, age, activity: actiFac } = req.body;
+// app.post("/signup/nutrition", async (req, res) => { //must have a username parameter
+//     //expects a json in this format:
+//     // {
+//     //     "username": "Marek",
+//     //     "allergies": ["peanuts", "shellfish"],
+//     //     "diet": "vegetarian",
+//     //     "weight": 70,
+//     //     "height": 175,
+//     //     "goal": "lose",
+//     //     "gender": "m",
+//     //     "age": 30,
+//     //     "actiFac": "moderate"
+//     //   }
+//     const { username, allergens: allergies, diet, weight, height, goal, gender, age, actiFac } = req.body;
+//     try {
+//         const userExists = await db.query("SELECT id FROM users WHERE username = $1", [username]);
+//         if (userExists.rows.length === 0) {
+//             res.status(409).json({ message: "user not found" }); // Assuming you want to return "user found" for conflict
+//             console.log("user not found");
+//         } else {
+//             const dailyCalories = calcDailyCalories(allergies, diet, weight, height, goal, gender, age, actiFac)
+//             let daily_meals;
+//             if (dailyCalories < 2500) {
+//                 daily_meals = 3;
+//             } else if (dailyCalories >= 2500 && dailyCalories < 3400) {
+//                 daily_meals = 4;
+//             } else {
+//                 daily_meals = 5;
+//             }            
+//             try {
+//                 const result = await db.query("INSERT INTO user_nutri_info (user_id, allergies, diet, current_weight, height, goal, gender, age, acti_fac, daily_meals) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)", [
+//                     userExists.rows[0].id, allergies, diet, weight, height, goal, gender, age, actiFac, daily_meals
+//                 ]);
+//                 // const result2 = await db.query("INSERT INTO weekly_recipes (sunday, monday, tuesday, wednesday, thursday, friday, saturday, userid) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *", [
+//                 //     getDailyMenu(userExists.rows[0].id), getDailyMenu(userExists.rows[0].id), getDailyMenu(userExists.rows[0].id), getDailyMenu(userExists.rows[0].id), getDailyMenu(userExists.rows[0].id), getDailyMenu(userExists.rows[0].id), getDailyMenu(userExists.rows[0].id), userExists.rows[0].id
+//                 // ]);                
+//                 res.status(200).json({ message: "users nutrition information added successfully" });
+//             } catch (error) {
+//                 console.log(error);
+//                 res.status(500).json({ message: "error occurred while querying" });
+//             }
+//         }
+//     } catch (error) {
+//         console.log(error);
+//         res.status(500).json({ message: "error occurred while querying" });
+//     }
+//     try {
+//         const result2 = await db.query("INSERT INTO weekly_recipes (sunday, monday, tuesday, wednesday, thursday, friday, saturday, userid) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *", [
+//             getDailyMenu(userExists.rows[0].id), getDailyMenu(userExists.rows[0].id), getDailyMenu(userExists.rows[0].id), getDailyMenu(userExists.rows[0].id), getDailyMenu(userExists.rows[0].id), getDailyMenu(userExists.rows[0].id), getDailyMenu(userExists.rows[0].id), userExists.rows[0].id
+//         ]);
+//     } catch (error) {
+//         console.log("error");
+//     }
+// });
+////////////////////////////// MENU CREATION ////////////////////////////////////////////////////////////////////
+
+app.post("/signup/nutrition", async (req, res) => {
+    const { username, allergens: allergies, diet, weight, height, goal, gender, age, actiFac } = req.body;
+    
     try {
-        const userExists = await db.query("SELECT id FROM users WHERE username = $1", [username]);
-        if (userExists.rows.length === 0) {
-            res.status(409).json({ message: "user not found" }); // Assuming you want to return "user found" for conflict
-            console.log("user not found");
-        } else {
-            try {
-                const result = await db.query("INSERT INTO user_nutri_info (user_id, allergies, diet, current_weight, height, goal, gender, age, acti_fac) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)", [
-                    userExists.rows[0].id, allergies, diet, weight, height, goal, gender, age, actiFac
-                ]);
-                const result2 = await db.query("INSERT INTO weekly_recipes (sunday, monday, tuesday, wednesday, thursday, friday, saturday, userid) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *", [
-                    getDailyMenu(userExists.rows[0].id), getDailyMenu(userExists.rows[0].id), getDailyMenu(userExists.rows[0].id), getDailyMenu(userExists.rows[0].id), getDailyMenu(userExists.rows[0].id), getDailyMenu(userExists.rows[0].id), getDailyMenu(userExists.rows[0].id), userExists.rows[0].id
-                ]);                
-                res.status(200).json({ message: "users nutrition information added successfully" });
-            } catch (error) {
-                console.log(error);
-                res.status(500).json({ message: "error occurred while querying" });
-            }
+        // Check if username is provided
+        if (!username) {
+            return res.status(400).json({ message: "Username is required" });
         }
+
+        const userExists = await db.query("SELECT id FROM users WHERE username = $1", [username]);
+
+        if (userExists.rows.length === 0) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        const dailyCalories = await calcDailyCalories(gender, weight, height, age, actiFac, goal);
+        let daily_meals;
+
+        // Determine number of daily meals based on daily calories
+        if (dailyCalories < 2500) {
+            daily_meals = 3;
+        } else if (dailyCalories < 3400) {
+            daily_meals = 4;
+        } else {
+            daily_meals = 5;
+        }
+
+        // Insert user nutrition information into database
+        const result1 = await db.query("INSERT INTO user_nutri_info (user_id, allergies, diet, current_weight, height, goal, gender, age, acti_fac, daily_meals) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)", [
+            userExists.rows[0].id, allergies, diet, weight, height, goal, gender, age, actiFac, daily_meals
+        ]);
+        // Insert weekly recipes
+        const result2 = await db.query("INSERT INTO weekly_recipes (sunday, monday, tuesday, wednesday, thursday, friday, saturday, userid) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *", [
+            await getDailyMenu(userExists.rows[0].id), await getDailyMenu(userExists.rows[0].id), await getDailyMenu(userExists.rows[0].id), await getDailyMenu(userExists.rows[0].id), await getDailyMenu(userExists.rows[0].id), await getDailyMenu(userExists.rows[0].id), await getDailyMenu(userExists.rows[0].id), userExists.rows[0].id
+        ]);
+        console.log(result1, result2);
+        res.status(200).json({ message: "User's nutrition information added successfully" });
     } catch (error) {
-        console.log(error);
-        res.status(500).json({ message: "error occurred while querying" });
+        console.error("Error:", error);
+        res.status(500).json({ message: "An error occurred while processing the request" });
     }
 });
-////////////////////////////// MENU CREATION ////////////////////////////////////////////////////////////////////
+
 app.post("/add/recipe", async (req, res) => {
     //expects a json in this format:
     // {
@@ -136,16 +196,17 @@ app.post("/add/recipe", async (req, res) => {
     //     "proteins": 25,
     //     "carbs": 70,
     //     "fats": 28
+    //     "meal": "lunch"
     //   }
-    const { username, rec_name, rec_img, ingredients, procedure, allergies, diet, calories, proteins, carbs, fats } = req.body;
+    const { username, rec_name, rec_img, ingredients, procedure, allergies, diet, calories, proteins, carbs, fats, meal } = req.body;
     try {
         const userExists = await db.query("SELECT id FROM users WHERE username = $1", [username]);
         if (userExists.rows.length === 0) {
             res.status(409).json({ message: "user not found" }); // Assuming you want to return "user not found" for conflict
         } else {
             try {
-                const result = await db.query("INSERT INTO recipes (user_id, rec_name, rec_img, ingredients, procedure, allergies, diet, calories, proteins, carbs, fats) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)", [
-                    userExists.rows[0].id, rec_name, rec_img, ingredients, procedure, allergies, diet, calories, proteins, carbs, fats
+                const result = await db.query("INSERT INTO recipes (user_id, rec_name, rec_img, ingredients, procedure, allergies, diet, calories, proteins, carbs, fats, meal) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)", [
+                    userExists.rows[0].id, rec_name, rec_img, ingredients, procedure, allergies, diet, calories, proteins, carbs, fats, meal
                 ]);
                 res.status(200).json({ message: "recipe added successfully" });
             } catch (error) {
@@ -186,6 +247,19 @@ app.get("/weeklyRecipes", async (req, res) => {
     }
 });
 
+app.get("/recipes/lunch", async (req, res)=>{
+    // code that retrieves lucnh recipes from weekly recipes
+});
+app.get("/recipes/breakfast", async (req, res)=>{
+    //code thatretrieves breakfast recipes from weekly recipes
+});
+app.get("/recipes/dinner", async (req, res)=>{
+    // code that retrieves dinner recipes from weekly recipes
+});
+
+app.get("/recipes/snack", async (req, res)=>{
+    // code that retrieves snack recipes from weekly recipes
+});
 
 app.post("/testPost", (req, res) => {
     const weekday = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"];
@@ -217,13 +291,65 @@ app.post('/login/local', function(req, res, next) {
   });
 
 //Actifac calculation:
-async function calcDailyCalories(user_id) {
-    try { 
-        const user = await db.query("SELECT * FROM user_nutri_info WHERE user_id = $1", [user_id]);
-        if (user.rows.length === 0) {
-            return 0;
-        } else {
-            const { gender, current_weight, height, age, acti_fac, goal } = user.rows[0];
+async function calcDailyCalories(user_id, gender, current_weight, height, age, acti_fac, goal) {
+        let user;
+        if(user_id){
+            try {
+                const result = await db.query("SELECT * FROM user_nutri_info WHERE user_id = $1", [user_id]);
+            if (result.rows.length === 0) {
+                return 0;
+            } else{
+                user = result.rows[0];
+                const { gender, current_weight, height, age, acti_fac, goal } = user;
+                let BMR;
+                let cals;
+                let maxCals;
+                switch (gender) {
+                    case "m":
+                        BMR = 88.362 + (13.397 * current_weight) + (4.799 * height) - (5.677 * age);
+                        break;
+
+                    case "f":
+                        BMR = 447.593 + (9.247 * current_weight) + (3.098 * height) - (4.330 * age);
+                        break;
+                    default:
+                        BMR = 404;
+                        break;
+                }
+                
+                switch (acti_fac) {
+                    case "sedentary":
+                        cals = BMR * 1.2;
+                        break;
+                    case "light":
+                        cals = BMR * 1.375;
+                        break;
+                    case "moderate":
+                        cals = BMR * 1.55;
+                        break;
+                    case "active":
+                        cals = BMR * 1.725;
+                        break;
+                    case "very_active":
+                        cals = BMR * 1.9;
+                        break;
+                    default:
+                        cals = "sedentary, light, moderate, active, very_active";
+                        break;
+                }
+                if (goal === "lose") {
+                    maxCals = Math.round(cals - 550);
+                } else if (goal === "gain") {
+                    maxCals = Math.round(cals + 350);
+                } else {
+                    maxCals = Math.round(cals);
+                }
+                return maxCals;
+            }
+            } catch (error) {
+                return "error occurred while querying";
+            }
+        } else{
             let BMR;
             let cals;
             let maxCals;
@@ -269,10 +395,8 @@ async function calcDailyCalories(user_id) {
             }
             return maxCals;
         }
-    } catch (error) {
-        return "error occurred while querying";
     }
-};
+        
 function idFromHeader(headerAuthorization) { // expects the req.headers.authorization !!
     const token = headerAuthorization.split(' ')[1];
     // Now you can verify the JWT token or use its information as needed
@@ -288,34 +412,172 @@ function idFromHeader(headerAuthorization) { // expects the req.headers.authoriz
         return error
     }
 }
-async function selectRecipes(dailyCalories, nutriInfo) {
+
+// async function selectRecipes(mealCalories, nutriInfo, meal) {
+//     let totalCalories = 0;
+//     let selectedRecs = {
+//         first: null, 
+//         main: null,
+//         desert: null
+//     };
+//     while (totalCalories < mealCalories) { //selects recipes randomly, but shoudl select recipes based on course, eg for lunch 3 course meal: soup, main, desert
+//         // const remainingCalories = mealCalories - totalCalories;
+//         let courses;
+//         if (meal === "breakfast" || meal === "snack"){ 
+//             courses = {
+//                 total: 1,
+//                 courseCal: [mealCalories],
+//                 course: ["main"]
+//             }
+
+//         } else { 
+//             courses = {
+//                 total: 3,
+//                 courseCal :[ mealCalories / 10, mealCalories / 60, mealCalories / 30],
+//                 course: ["first", "main", "desert"]
+//             }
+//             for (let i = 0; i < courses.total; i++) {
+//                 // Your logic to select recipes for each course
+//                 // let remainingCalories = mealCalories - totalCalories;
+//                 // if(remainingCalories <= 0){break};
+//                 let currentCourseCalories = courses.courseCal[i];
+//                 let currentCourse = courses.course[i]
+                
+//                 // Construct the SQL query to select a recipe for the current course
+//                 let query = `SELECT * FROM recipes WHERE diet = $1 AND allergies != $2 AND calories <= $3 AND meal = $4 AND course = $5`;
+//                 const selectedRecipeIds = selectedRecs.map(rec => rec.id);
+//                 if (selectedRecipeIds.length > 0) {
+//                     query += ` AND id NOT IN (${selectedRecipeIds.map((_, i) => `$${i + 5}`).join(', ')})`;
+//                 }
+//                 query += ` ORDER BY RANDOM() LIMIT 1`;
+                
+//                 // Execute the SQL query with parameters
+//                 const paramsArray = selectedRecipeIds.length > 0 
+//                     ? [nutriInfo.rows[0].diet, nutriInfo.rows[0].allergies, currentCourseCalories, meal, currentCourse,...selectedRecipeIds] 
+//                     : [nutriInfo.rows[0].diet, nutriInfo.rows[0].allergies, currentCourseCalories, meal, currentCourse];
+                
+//                 const result = await db.query(query, paramsArray);
+//                 // You can use SQL queries here to fetch recipes from a database
+//                 // Ensure that the totalCalories don't exceed mealCalories
+//                 // Add selected recipes to selectedRecs array
+//                 selectedRecs = {
+//                     ...selectedRecs,
+//                     currentCourse: result.rows[0]
+//                 }
+//             }
+//             return selectedRecs;
+//         }   
+//         // for (let i = 0; i < courses.total; i++) {
+//         //     // Your logic to select recipes for each course
+//         //     // let remainingCalories = mealCalories - totalCalories;
+//         //     // if(remainingCalories <= 0){break};
+//         //     let currentCourse;
+//         //     if (i===0){currentCourse===}
+//         //     // Construct the SQL query to select a recipe for the current course
+//         //     let query = `SELECT * FROM recipes WHERE diet = $1 AND allergies != $2 AND calories <= $3 AND meal = $4 AND course = $4`;
+//         //     const selectedRecipeIds = selectedRecs.map(rec => rec.id);
+//         //     if (selectedRecipeIds.length > 0) {
+//         //         query += ` AND id NOT IN (${selectedRecipeIds.map((_, i) => `$${i + 5}`).join(', ')})`;
+//         //     }
+//         //     query += ` ORDER BY RANDOM() LIMIT 1`;
+            
+//         //     // Execute the SQL query with parameters
+//         //     const paramsArray = selectedRecipeIds.length > 0 
+//         //         ? [nutriInfo.rows[0].diet, nutriInfo.rows[0].allergies, remainingCalories, meal, ...selectedRecipeIds] 
+//         //         : [nutriInfo.rows[0].diet, nutriInfo.rows[0].allergies, remainingCalories, meal];
+            
+//         //     const result = await db.query(query, paramsArray);
+//         //     // You can use SQL queries here to fetch recipes from a database
+//         //     // Ensure that the totalCalories don't exceed mealCalories
+//         //     // Add selected recipes to selectedRecs array
+//         // }
+//         // const selectedRecipeIds = selectedRecs.map(rec => rec.id);
+//         // let query = `SELECT * FROM recipes WHERE diet = $1 AND allergies != $2 AND calories <= $3 AND meal = $4`;
+//         // if (selectedRecipeIds.length > 0) {
+//         //     query += ` AND id NOT IN (${selectedRecipeIds.map((_, i) => `$${i + 4}`).join(', ')})`;
+//         // }
+//         // query += ` ORDER BY RANDOM() LIMIT 1`;// creates a query that is acceptable 
+
+//         // const paramsArray = selectedRecipeIds.length > 0 // the number of parameters must match the $ in query
+//         //     ? [nutriInfo.rows[0].diet, nutriInfo.rows[0].allergies, meal, remainingCalories, ...selectedRecipeIds] 
+//         //     : [nutriInfo.rows[0].diet, nutriInfo.rows[0].allergies, meal,  remainingCalories];
+
+//         // const result = await db.query(query, paramsArray);
+
+//         // if (result.rows.length === 0) {
+//         //     console.log("No more recipes available within calorie limit");
+//         //     break;
+//         // }
+
+//         // const selectedRec = result.rows[0];
+//         // totalCalories += selectedRec.calories;
+//         // selectedRecs.push(selectedRec);
+//     }
+//     // return selectedRecs;
+// }
+async function selectRecipes(mealCalories, nutriInfo, meal) {
     let totalCalories = 0;
-    const selectedRecs = [];
-    while (totalCalories < dailyCalories) {
-        const remainingCalories = dailyCalories - totalCalories;
+    let selectedRecs = {
+        first: null, 
+        main: null,
+        desert: null
+    };
 
-        const selectedRecipeIds = selectedRecs.map(rec => rec.id);
-        let query = `SELECT * FROM recipes WHERE diet = $1 AND allergies != $2 AND calories <= $3`;
-        if (selectedRecipeIds.length > 0) {
-            query += ` AND id NOT IN (${selectedRecipeIds.map((_, i) => `$${i + 4}`).join(', ')})`;
+    while (totalCalories < mealCalories) {
+        let courses;
+
+        if (meal === "breakfast" || meal === "snack") { 
+            // For breakfast or snack, only one course (main) is considered
+            courses = {
+                total: 1,
+                courseCal: [mealCalories],
+                course: ["main"]
+            };
+        } else { 
+            // For lunch or dinner, consider three courses (first, main, dessert)
+            courses = {
+                total: 3,
+                courseCal: [mealCalories / 10, mealCalories / 60, mealCalories / 30],
+                course: ["first", "main", "dessert"]
+            };
         }
-        query += ` ORDER BY RANDOM() LIMIT 1`;// creates a query that is acceptable 
 
-        const paramsArray = selectedRecipeIds.length > 0 // the number of parameters must match the $ in query
-            ? [nutriInfo.rows[0].diet, nutriInfo.rows[0].allergies, remainingCalories, ...selectedRecipeIds] 
-            : [nutriInfo.rows[0].diet, nutriInfo.rows[0].allergies, remainingCalories];
+        // Loop through each course
+        for (let i = 0; i < courses.total; i++) {
+            let currentCourseCalories = courses.courseCal[i];
+            let currentCourse = courses.course[i];
+            
+            // Construct the SQL query to select a recipe for the current course
+            let query = `SELECT * FROM recipes WHERE diet = $1 AND allergies != $2 AND calories <= $3 AND meal = $4 AND course = $5`;
+            const selectedRecipeIds = Object.values(selectedRecs).map(rec => rec ? rec.id : null);
+            if (selectedRecipeIds.length > 0) {
+                query += ` AND id NOT IN (${selectedRecipeIds.map((_, i) => `$${i + 6}`).join(', ')})`;
+            }
+            query += ` ORDER BY RANDOM() LIMIT 1`;
+            
+            // Execute the SQL query with parameters
+            const paramsArray = selectedRecipeIds.length > 0 
+                ? [nutriInfo.rows[0].diet, nutriInfo.rows[0].allergies, currentCourseCalories, meal, currentCourse, ...selectedRecipeIds] 
+                : [nutriInfo.rows[0].diet, nutriInfo.rows[0].allergies, currentCourseCalories, meal, currentCourse];
+            
+            const result = await db.query(query, paramsArray);
+            
+            // Check if any recipes were found
+            if (result.rows.length === 0) {
+                console.log(`No recipes available for ${currentCourse}`);
+                break;
+            }
 
-        const result = await db.query(query, paramsArray);
-
-        if (result.rows.length === 0) {
-            console.log("No more recipes available within calorie limit");
-            break;
+            // Select the first recipe from the result
+            const selectedRec = result.rows[0];
+            
+            // Update totalCalories and add selected recipe to selectedRecs
+            totalCalories += selectedRec.calories;
+            selectedRecs[currentCourse] = selectedRec;
         }
-
-        const selectedRec = result.rows[0];
-        totalCalories += selectedRec.calories;
-        selectedRecs.push(selectedRec);
     }
+
+    // Return the selected recipes
     return selectedRecs;
 }
 async function getDailyMenu(id) {
@@ -325,11 +587,52 @@ async function getDailyMenu(id) {
     }
     try {
         const nutriInfo = await db.query("SELECT * FROM user_nutri_info WHERE user_id = $1", [id]);
+        console.log(nutriInfo); //////////////////////////////////////////////////////////////////////////////////////ERROR HERE - userDailyMEals is undefined ////////////////////////////////////////////////////////
+        const userDailyMeals = nutriInfo.rows[0].daily_meals;
+        console.log(userDailyMeals);
         const dailyCalories = await calcDailyCalories(id);
-        const selectedRecs = await selectRecipes(dailyCalories, nutriInfo);
-        console.log(selectedRecs);
+        const mealCalories = dailyCalories / userDailyMeals;
+        let dailyRecipes
+        switch (userDailyMeals) {
+            case 3:
+                    dailyRecipes = {
+                        breakfast: await selectRecipes(mealCalories, nutriInfo, "breakfast"),
+                        lunch: await selectRecipes(mealCalories, nutriInfo, "lunch"), 
+                        dinner: await selectRecipes(mealCalories, nutriInfo, "dinner")
+                    }
 
-        return selectedRecs;
+                break;
+            case 4:
+                for (let i = 0; i < userDailyMeals; i++) {
+                    dailyRecipes = {
+                        breakfast: await selectRecipes(mealCalories, nutriInfo, "breakfast"),
+                        snack: await selectRecipes(mealCalories, nutriInfo, "snack"),
+                        lunch: await selectRecipes(mealCalories, nutriInfo, "lunch"), 
+                        dinner: await selectRecipes(mealCalories, nutriInfo, "dinner")
+                    }
+            
+                }
+                break;
+
+            case 5:
+                for (let i = 0; i < userDailyMeals; i++) {
+                    dailyRecipes = {
+                        breakfast: await selectRecipes(mealCalories, nutriInfo, "breakfast"),
+                        snack: await selectRecipes(mealCalories, nutriInfo, "snack"),
+                        lunch: await selectRecipes(mealCalories, nutriInfo, "lunch"),
+                        snack: await selectRecipes(mealCalories, nutriInfo, "snack"),
+                        dinner: await selectRecipes(mealCalories, nutriInfo, "dinner")
+                    }
+
+                }
+                break;
+            default:
+                console.log("default");
+                break;
+        }
+        console.log(dailyRecipes);
+
+        return dailyRecipes;
     } catch (error) {
         console.log(error);
         return "Error occurred while processing the request";
