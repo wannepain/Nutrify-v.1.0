@@ -140,7 +140,7 @@ app.post("/signup", async (req, res) => {
 ////////////////////////////// MENU CREATION ////////////////////////////////////////////////////////////////////
 
 app.post("/signup/nutrition", async (req, res) => {
-    const { username, allergens: allergies, diet, weight, height, goal, gender, age, actiFac } = req.body;
+    const { username, allergies, diet, weight, height, goal, gender, age, actiFac } = req.body;
     
     try {
         // Check if username is provided
@@ -154,7 +154,9 @@ app.post("/signup/nutrition", async (req, res) => {
             return res.status(404).json({ message: "User not found" });
         }
 
-        const dailyCalories = await calcDailyCalories(gender, weight, height, age, actiFac, goal);
+        // const dailyCalories = await calcDailyCalories(gender, weight, height, age, actiFac, goal);
+        // const dailyCalories = await calcDailyCalories(gender, weight, height);
+        const dailyCalories = await calcDailyCalories(null,gender, weight, height, age, actiFac, goal);
         let daily_meals;
 
         // Determine number of daily meals based on daily calories
@@ -165,7 +167,6 @@ app.post("/signup/nutrition", async (req, res) => {
         } else {
             daily_meals = 5;
         }
-
         // Insert user nutrition information into database
         const result1 = await db.query("INSERT INTO user_nutri_info (user_id, allergies, diet, current_weight, height, goal, gender, age, acti_fac, daily_meals) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)", [
             userExists.rows[0].id, allergies, diet, weight, height, goal, gender, age, actiFac, daily_meals
@@ -174,7 +175,8 @@ app.post("/signup/nutrition", async (req, res) => {
         const result2 = await db.query("INSERT INTO weekly_recipes (sunday, monday, tuesday, wednesday, thursday, friday, saturday, userid) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *", [
             await getDailyMenu(userExists.rows[0].id), await getDailyMenu(userExists.rows[0].id), await getDailyMenu(userExists.rows[0].id), await getDailyMenu(userExists.rows[0].id), await getDailyMenu(userExists.rows[0].id), await getDailyMenu(userExists.rows[0].id), await getDailyMenu(userExists.rows[0].id), userExists.rows[0].id
         ]);
-        console.log(result1, result2);
+        // console.log(181,result2);
+        // console.log(182, result1, result2);
         res.status(200).json({ message: "User's nutrition information added successfully" });
     } catch (error) {
         console.error("Error:", error);
@@ -196,17 +198,18 @@ app.post("/add/recipe", async (req, res) => {
     //     "proteins": 25,
     //     "carbs": 70,
     //     "fats": 28
-    //     "meal": "lunch"
+    //     "meal": "lunch" or "breakfast" or "dinner"
+    //     "course": "first" or "main" or "desert"
     //   }
-    const { username, rec_name, rec_img, ingredients, procedure, allergies, diet, calories, proteins, carbs, fats, meal } = req.body;
+    const { username, rec_name, rec_img, ingredients, procedure, allergies, diet, calories, proteins, carbs, fats, meal, course } = req.body;
     try {
         const userExists = await db.query("SELECT id FROM users WHERE username = $1", [username]);
         if (userExists.rows.length === 0) {
             res.status(409).json({ message: "user not found" }); // Assuming you want to return "user not found" for conflict
         } else {
             try {
-                const result = await db.query("INSERT INTO recipes (user_id, rec_name, rec_img, ingredients, procedure, allergies, diet, calories, proteins, carbs, fats, meal) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)", [
-                    userExists.rows[0].id, rec_name, rec_img, ingredients, procedure, allergies, diet, calories, proteins, carbs, fats, meal
+                const result = await db.query("INSERT INTO recipes (user_id, rec_name, rec_img, ingredients, procedure, allergies, diet, calories, proteins, carbs, fats, meal, course) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)", [
+                    userExists.rows[0].id, rec_name, rec_img, ingredients, procedure, allergies, diet, calories, proteins, carbs, fats, meal, course
                 ]);
                 res.status(200).json({ message: "recipe added successfully" });
             } catch (error) {
@@ -284,22 +287,128 @@ app.post('/login/local', function(req, res, next) {
           return res.status(500).json({ message: "Internal server error" });
         }
         const token = jwt.sign({ id: user.id }, 'QWERTY', { expiresIn: '24h' }); //creates a token for the front end
-        console.log(user.id);
+        console.log(293, user.id);
         return res.status(200).json({ message: "Authentication successful", user: user , token: token });
       });
     })(req, res, next);
   });
 
 //Actifac calculation:
+// async function calcDailyCalories(user_id, gender, current_weight, height, age, acti_fac, goal) {
+//         let user;
+//         if(user_id !=null){
+//             try {
+//                 const result = await db.query("SELECT * FROM user_nutri_info WHERE user_id = $1", [user_id]);
+//             if (result.rows.length === 0) {
+//                 return 0;
+//             } else{
+//                 user = result.rows[0];
+//                 const { gender, current_weight, height, age, acti_fac, goal } = user;
+//                 let BMR;
+//                 let cals;
+//                 let maxCals;
+//                 switch (gender) {
+//                     case "m":
+//                         BMR = 88.362 + (13.397 * current_weight) + (4.799 * height) - (5.677 * age);
+//                         break;
+
+//                     case "f":
+//                         BMR = 447.593 + (9.247 * current_weight) + (3.098 * height) - (4.330 * age);
+//                         break;
+//                     default:
+//                         BMR = 404;
+//                         break;
+//                 }
+                
+//                 switch (acti_fac) {
+//                     case "sedentary":
+//                         cals = BMR * 1.2;
+//                         break;
+//                     case "light":
+//                         cals = BMR * 1.375;
+//                         break;
+//                     case "moderate":
+//                         cals = BMR * 1.55;
+//                         break;
+//                     case "active":
+//                         cals = BMR * 1.725;
+//                         break;
+//                     case "very_active":
+//                         cals = BMR * 1.9;
+//                         break;
+//                     default:
+//                         cals = "sedentary, light, moderate, active, very_active";
+//                         break;
+//                 }
+//                 if (goal === "lose") {
+//                     maxCals = Math.round(cals - 550);
+//                 } else if (goal === "gain") {
+//                     maxCals = Math.round(cals + 350);
+//                 } else {
+//                     maxCals = Math.round(cals);
+//                 }
+//                 return maxCals;
+//             }
+//             } catch (error) {
+//                 console.log(error);
+//                 return "error occurred while querying";
+//             }
+//         } else{
+//             let BMR;
+//             let cals;
+//             let maxCals;
+//             switch (gender) {
+//                 case "m":
+//                     BMR = 88.362 + (13.397 * current_weight) + (4.799 * height) - (5.677 * age);
+//                     break;
+
+//                 case "f":
+//                     BMR = 447.593 + (9.247 * current_weight) + (3.098 * height) - (4.330 * age);
+//                     break;
+//                 default:
+//                     BMR = 404;
+//                     break;
+//             }
+            
+//             switch (acti_fac) {
+//                 case "sedentary":
+//                     cals = BMR * 1.2;
+//                     break;
+//                 case "light":
+//                     cals = BMR * 1.375;
+//                     break;
+//                 case "moderate":
+//                     cals = BMR * 1.55;
+//                     break;
+//                 case "active":
+//                     cals = BMR * 1.725;
+//                     break;
+//                 case "very_active":
+//                     cals = BMR * 1.9;
+//                     break;
+//                 default:
+//                     cals = "sedentary, light, moderate, active, very_active";
+//                     break;
+//             }
+//             if (goal === "lose") {
+//                 maxCals = Math.round(cals - 550);
+//             } else if (goal === "gain") {
+//                 maxCals = Math.round(cals + 350);
+//             } else {
+//                 maxCals = Math.round(cals);
+//             }
+//             return maxCals;
+//         }
+//     }
 async function calcDailyCalories(user_id, gender, current_weight, height, age, acti_fac, goal) {
-        let user;
-        if(user_id){
-            try {
-                const result = await db.query("SELECT * FROM user_nutri_info WHERE user_id = $1", [user_id]);
+    console.log(407, user_id);
+    if (user_id != null && user_id !== undefined) {
+        try {
+            const result = await db.query("SELECT * FROM user_nutri_info WHERE user_id = $1", [user_id]);
             if (result.rows.length === 0) {
                 return 0;
-            } else{
-                user = result.rows[0];
+            } else {
+                const user = result.rows[0];
                 const { gender, current_weight, height, age, acti_fac, goal } = user;
                 let BMR;
                 let cals;
@@ -308,7 +417,6 @@ async function calcDailyCalories(user_id, gender, current_weight, height, age, a
                     case "m":
                         BMR = 88.362 + (13.397 * current_weight) + (4.799 * height) - (5.677 * age);
                         break;
-
                     case "f":
                         BMR = 447.593 + (9.247 * current_weight) + (3.098 * height) - (4.330 * age);
                         break;
@@ -316,7 +424,7 @@ async function calcDailyCalories(user_id, gender, current_weight, height, age, a
                         BMR = 404;
                         break;
                 }
-                
+
                 switch (acti_fac) {
                     case "sedentary":
                         cals = BMR * 1.2;
@@ -346,56 +454,57 @@ async function calcDailyCalories(user_id, gender, current_weight, height, age, a
                 }
                 return maxCals;
             }
-            } catch (error) {
-                return "error occurred while querying";
-            }
-        } else{
-            let BMR;
-            let cals;
-            let maxCals;
-            switch (gender) {
-                case "m":
-                    BMR = 88.362 + (13.397 * current_weight) + (4.799 * height) - (5.677 * age);
-                    break;
-
-                case "f":
-                    BMR = 447.593 + (9.247 * current_weight) + (3.098 * height) - (4.330 * age);
-                    break;
-                default:
-                    BMR = 404;
-                    break;
-            }
-            
-            switch (acti_fac) {
-                case "sedentary":
-                    cals = BMR * 1.2;
-                    break;
-                case "light":
-                    cals = BMR * 1.375;
-                    break;
-                case "moderate":
-                    cals = BMR * 1.55;
-                    break;
-                case "active":
-                    cals = BMR * 1.725;
-                    break;
-                case "very_active":
-                    cals = BMR * 1.9;
-                    break;
-                default:
-                    cals = "sedentary, light, moderate, active, very_active";
-                    break;
-            }
-            if (goal === "lose") {
-                maxCals = Math.round(cals - 550);
-            } else if (goal === "gain") {
-                maxCals = Math.round(cals + 350);
-            } else {
-                maxCals = Math.round(cals);
-            }
-            return maxCals;
+        } catch (error) {
+            console.log(461, error);
+            return "error occurred while querying";
         }
+    } else {
+        let BMR;
+        let cals;
+        let maxCals;
+        switch (gender) {
+            case "m":
+                BMR = 88.362 + (13.397 * current_weight) + (4.799 * height) - (5.677 * age);
+                break;
+            case "f":
+                BMR = 447.593 + (9.247 * current_weight) + (3.098 * height) - (4.330 * age);
+                break;
+            default:
+                BMR = 404;
+                break;
+        }
+
+        switch (acti_fac) {
+            case "sedentary":
+                cals = BMR * 1.2;
+                break;
+            case "light":
+                cals = BMR * 1.375;
+                break;
+            case "moderate":
+                cals = BMR * 1.55;
+                break;
+            case "active":
+                cals = BMR * 1.725;
+                break;
+            case "very_active":
+                cals = BMR * 1.9;
+                break;
+            default:
+                cals = "sedentary, light, moderate, active, very_active";
+                break;
+        }
+        if (goal === "lose") {
+            maxCals = Math.round(cals - 550);
+        } else if (goal === "gain") {
+            maxCals = Math.round(cals + 350);
+        } else {
+            maxCals = Math.round(cals);
+        }
+        return maxCals;
     }
+}
+
         
 function idFromHeader(headerAuthorization) { // expects the req.headers.authorization !!
     const token = headerAuthorization.split(' ')[1];
@@ -407,7 +516,7 @@ function idFromHeader(headerAuthorization) { // expects the req.headers.authoriz
         // res.send('Token verified successfully');
         return decodedToken
     } catch (error) {
-        console.error('Token verification failed:', error);
+        console.error(522, 'Token verification failed:', error);
         // res.status(401).send('Unauthorized');
         return error
     }
@@ -547,24 +656,59 @@ async function selectRecipes(mealCalories, nutriInfo, meal) {
             let currentCourseCalories = courses.courseCal[i];
             let currentCourse = courses.course[i];
             
-            // Construct the SQL query to select a recipe for the current course
-            let query = `SELECT * FROM recipes WHERE diet = $1 AND allergies != $2 AND calories <= $3 AND meal = $4 AND course = $5`;
+            //Construct the SQL query to select a recipe for the current course
+            // let query = `SELECT * FROM recipes WHERE $1 = ANY(diet) AND allergies != $2 AND calories <= $3 AND meal = $4 AND course = $5`;
+            // const selectedRecipeIds = Object.values(selectedRecs).map(rec => rec ? rec.id : null);
+            // if (selectedRecipeIds.length > 0) {
+            //     query += ` AND id NOT IN (${selectedRecipeIds.map((_, i) => `$${i + 6}`).join(', ')})`;
+            // }
+            // query += ` ORDER BY RANDOM() LIMIT 1`;
+            
+            // // Execute the SQL query with parameters
+            // const paramsArray = selectedRecipeIds.length > 0 
+            //     ? [nutriInfo.rows[0].diet, nutriInfo.rows[0].allergies, currentCourseCalories, meal, currentCourse, ...selectedRecipeIds] 
+            //     : [nutriInfo.rows[0].diet, nutriInfo.rows[0].allergies, currentCourseCalories, meal, currentCourse];
+            // console.log(nutriInfo.rows[0].diet);
+            // const result = await db.query(query, paramsArray);
+            // let query = `SELECT * FROM recipes WHERE $1 = ANY(diet) AND allergies != $2 AND calories <= $3 AND $4 = ANY(meal) AND course = $5`;
+
+            // const selectedRecipeIds = Object.values(selectedRecs).map(rec => rec ? rec.id : null);
+
+            // if (selectedRecipeIds.length > 0) {
+            //     query += ` AND id NOT IN (${selectedRecipeIds.map((_, i) => `$${i + 6}`).join(', ')})`;
+            // }
+
+            // query += ` ORDER BY RANDOM() LIMIT 1`;
+
+            // Execute the SQL query with parameters
+            // const paramsArray = selectedRecipeIds.length > 0 
+            //     ? [nutriInfo.rows[0].diet, nutriInfo.rows[0].allergies, currentCourseCalories, meal, currentCourse, ...selectedRecipeIds] 
+            //     : [nutriInfo.rows[0].diet, nutriInfo.rows[0].allergies, currentCourseCalories, meal, currentCourse];
+
+            // const result = await db.query(query, paramsArray);
+            let query = `SELECT * FROM recipes WHERE $1 = ANY(diet) AND allergies != $2 AND calories <= $3 AND $4 = ANY(meal) AND course = $5`;
+
             const selectedRecipeIds = Object.values(selectedRecs).map(rec => rec ? rec.id : null);
+
             if (selectedRecipeIds.length > 0) {
                 query += ` AND id NOT IN (${selectedRecipeIds.map((_, i) => `$${i + 6}`).join(', ')})`;
             }
+
             query += ` ORDER BY RANDOM() LIMIT 1`;
-            
+
             // Execute the SQL query with parameters
             const paramsArray = selectedRecipeIds.length > 0 
                 ? [nutriInfo.rows[0].diet, nutriInfo.rows[0].allergies, currentCourseCalories, meal, currentCourse, ...selectedRecipeIds] 
                 : [nutriInfo.rows[0].diet, nutriInfo.rows[0].allergies, currentCourseCalories, meal, currentCourse];
-            
+
             const result = await db.query(query, paramsArray);
+            
+
+
             
             // Check if any recipes were found
             if (result.rows.length === 0) {
-                console.log(`No recipes available for ${currentCourse}`);
+                // console.log(679, `No recipes available for ${currentCourse}`);
                 break;
             }
 
@@ -581,17 +725,17 @@ async function selectRecipes(mealCalories, nutriInfo, meal) {
     return selectedRecs;
 }
 async function getDailyMenu(id) {
-    if (id === undefined){
+    if (!id){
         // res.status(407).json({message: "Invalid jwt token"});
         return "Id cant be undefined"
     }
     try {
         const nutriInfo = await db.query("SELECT * FROM user_nutri_info WHERE user_id = $1", [id]);
-        console.log(nutriInfo); //////////////////////////////////////////////////////////////////////////////////////ERROR HERE - userDailyMEals is undefined ////////////////////////////////////////////////////////
+        // console.log(nutriInfo); //////////////////////////////////////////////////////////////////////////////////////ERROR HERE - userDailyMEals is undefined ////////////////////////////////////////////////////////
         const userDailyMeals = nutriInfo.rows[0].daily_meals;
-        console.log(userDailyMeals);
+        // console.log(userDailyMeals);
         const dailyCalories = await calcDailyCalories(id);
-        const mealCalories = dailyCalories / userDailyMeals;
+        const mealCalories = Math.floor(dailyCalories / userDailyMeals);
         let dailyRecipes
         switch (userDailyMeals) {
             case 3:
@@ -600,7 +744,6 @@ async function getDailyMenu(id) {
                         lunch: await selectRecipes(mealCalories, nutriInfo, "lunch"), 
                         dinner: await selectRecipes(mealCalories, nutriInfo, "dinner")
                     }
-
                 break;
             case 4:
                 for (let i = 0; i < userDailyMeals; i++) {
@@ -627,14 +770,14 @@ async function getDailyMenu(id) {
                 }
                 break;
             default:
-                console.log("default");
+                console.log(742, "default");
                 break;
         }
-        console.log(dailyRecipes);
+        // console.log(dailyRecipes);
 
         return dailyRecipes;
     } catch (error) {
-        console.log(error);
+        console.log(747, error);
         return "Error occurred while processing the request";
     }
 }
