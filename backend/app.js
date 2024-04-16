@@ -173,8 +173,8 @@ app.post("/signup/nutrition", async (req, res) => {
         ]);
         console.log("result 1=", result1);
         // Insert weekly recipes
-        const result2 = await db.query("INSERT INTO weekly_recipes (sunday, monday, tuesday, wednesday, thursday, friday, saturday, userid) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *", [
-            await getDailyMenu(userExists.rows[0].id), await getDailyMenu(userExists.rows[0].id), await getDailyMenu(userExists.rows[0].id), await getDailyMenu(userExists.rows[0].id), await getDailyMenu(userExists.rows[0].id), await getDailyMenu(userExists.rows[0].id), await getDailyMenu(userExists.rows[0].id), userExists.rows[0].id
+        const result2 = await db.query("INSERT INTO weekly_recipes (user_id, sunday, monday, tuesday, wednesday, thursday, friday, saturday) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *", [
+            userExists.rows[0].id, await getDailyMenu(userExists.rows[0].id), await getDailyMenu(userExists.rows[0].id), await getDailyMenu(userExists.rows[0].id), await getDailyMenu(userExists.rows[0].id), await getDailyMenu(userExists.rows[0].id), await getDailyMenu(userExists.rows[0].id), await getDailyMenu(userExists.rows[0].id)
         ]);
         console.log(result2);
         res.status(200).json({ message: "User's nutrition information added successfully" });
@@ -525,39 +525,40 @@ function idFromHeader(headerAuthorization) { // expects the req.headers.authoriz
 
 async function selectRecipes(mealCalories, nutriInfo, meal) {
     let totalCalories = 0;
+    let courses;
     const selectedRecs = {
-        "first": null,
-        "main": null,
-        "dessert": null,
+        first: null,
+        main: null,
+        dessert: null,
         };
+        
 
+    if (meal === "breakfast" || meal === "snack") {
+        courses = {
+            total: 1,
+            courseCal: [mealCalories],
+            course: ["main"]
+        };
+    } else {
+        courses = {
+            total: 3,
+            courseCal: [(mealCalories / 100) * 10, (mealCalories / 100) * 60, (mealCalories / 100) * 30],
+            course: ["first", "main", "dessert"]
+        };
+    }
     while (totalCalories < mealCalories) {
-        let courses;
-
-        if (meal === "breakfast" || meal === "snack") {
-            courses = {
-                total: 1,
-                courseCal: [mealCalories],
-                course: ["main"]
-            };
-        } else {
-            courses = {
-                total: 3,
-                courseCal: [(mealCalories / 100) * 10, (mealCalories / 100) * 60, (mealCalories / 100) * 30],
-                course: ["first", "main", "dessert"]
-            };
-        }
+        
 
         for (let i = 0; i < courses.total; i++) {
             let currentCourseCalories = Math.floor(courses.courseCal[i]);
             let currentCourse = courses.course[i];
-            let selectedRecipeIds
+            let selectedRecipeIds = [];
 
-            let query = `SELECT * FROM recipes WHERE $1 = ANY(diet) AND calories <= $2 AND $3 = ANY(meal) AND course = $4`;
-            console.log(selectedRecs[currentCourse], selectedRecs[currentCourse].id);
-            if (selectedRecs[currentCourse].id) {
-                // selectedRecipeIds = Object.values(selectedRecs).map(rec => rec ? rec.id : null);
-                selectedRecipeIds = [...selectedRecipeIds, selectedRecs[currentCourse].id]
+            let query = `SELECT id FROM recipes WHERE $1 = ANY(diet) AND calories <= $2 AND $3 = ANY(meal) AND course = $4`;
+            
+            if (selectedRecs[courses.course[i - 1]] != null) { //if previous course has a value 
+                
+                selectedRecipeIds.push(selectedRecs[courses.course[i - 1]].id); //adds the previous recipe id to the selected array
                 console.log(selectedRecipeIds);
                 query += ` AND id NOT IN (${selectedRecipeIds.map((_, i) => `$${i + 5}`).join(', ')})`;
             }
@@ -565,7 +566,7 @@ async function selectRecipes(mealCalories, nutriInfo, meal) {
             query += ` ORDER BY RANDOM() LIMIT 1`;
 
             try {
-                const paramsArray = selectedRecs[currentCourse].id != null || selectedRecs[currentCourse].id != undefined
+                const paramsArray = selectedRecs[courses.course[i - 1]] != null
                     ? [nutriInfo.rows[0].diet, currentCourseCalories, meal, currentCourse, ...selectedRecipeIds] 
                     : [nutriInfo.rows[0].diet, currentCourseCalories, meal, currentCourse];
 
@@ -573,13 +574,13 @@ async function selectRecipes(mealCalories, nutriInfo, meal) {
 
                 if (result.rows.length === 0) {
                     console.log(`No recipes available for ${currentCourse}`);
-                    totalCalories = mealCalories;
-                    break;
+                    //totalCalories = mealCalories; // to break the while loop 
+                    continue;
                 }
 
                 const selectedRec = result.rows[0];
                 totalCalories += selectedRec.calories;
-                selectedRecs[currentCourse] = selectedRec;
+                selectedRecs[currentCourse] = selectedRec.id;
             } catch (error) {
                 console.error("Error selecting recipe:", error);
                 // Handle error gracefully, possibly retry or skip this iteration
