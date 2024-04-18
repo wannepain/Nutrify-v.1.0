@@ -86,6 +86,7 @@ function SignUp(props) {
                 <form>
                     <h1 id="SignUp">Sign up</h1>
                     <div id="secondSignUpContainer">
+                        <input type="hidden" value={values.username} name="username"/>
                         <Allergies error={setError} obj={addToObj}/>
                         <Diet obj={addToObj}/>
                         <WeightHeight obj={addToObj}/>

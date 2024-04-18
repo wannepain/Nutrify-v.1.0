@@ -141,6 +141,7 @@ app.post("/signup", async (req, res) => {
 
 app.post("/signup/nutrition", async (req, res) => {
     const { username, allergies, diet, weight, height, goal, gender, age, actiFac } = req.body;
+    console.log(username);
     
     try {
         // Check if username is provided
@@ -173,9 +174,11 @@ app.post("/signup/nutrition", async (req, res) => {
         ]);
         console.log("result 1=", result1);
         // Insert weekly recipes
-        const result2 = await db.query("INSERT INTO weekly_recipes (user_id, sunday, monday, tuesday, wednesday, thursday, friday, saturday) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *", [
-            userExists.rows[0].id, await getDailyMenu(userExists.rows[0].id), await getDailyMenu(userExists.rows[0].id), await getDailyMenu(userExists.rows[0].id), await getDailyMenu(userExists.rows[0].id), await getDailyMenu(userExists.rows[0].id), await getDailyMenu(userExists.rows[0].id), await getDailyMenu(userExists.rows[0].id)
-        ]);
+        const paramsArray = [userExists.rows[0].id, await getDailyMenu(userExists.rows[0].id), await getDailyMenu(userExists.rows[0].id), await getDailyMenu(userExists.rows[0].id), await getDailyMenu(userExists.rows[0].id), await getDailyMenu(userExists.rows[0].id), await getDailyMenu(userExists.rows[0].id), await getDailyMenu(userExists.rows[0].id)];
+        console.log(paramsArray);
+        const result2 = await db.query("INSERT INTO weekly_recipes (user_id, sunday, monday, tuesday, wednesday, thursday, friday, saturday) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *", 
+            paramsArray
+        );
         console.log(result2);
         res.status(200).json({ message: "User's nutrition information added successfully" });
     } catch (error) {
@@ -228,19 +231,22 @@ app.post("/add/recipe", async (req, res) => {
     }
 });
 
-app.get("/weeklyRecipes", async (req, res) => {
+app.post("/weeklyRecipes", async (req, res) => {
+    const { id } = idFromHeader(req.headers.authorization);
+    // const id = req.body.id
+    console.log(id);
     try {
-        const { id } = idFromHeader(req.headers.authorization);
+        // const id = 3;
         const d = new Date();
         if (d.getDay() === 0) { // if today is Sunday
             console.log("today is sunday");
-            const result = await db.query("UPDATE weekly_recipes SET sunday=$1, monday=$2, tuesday=$3, wednesday=$4, thursday=$5, friday=$6, saturday=$7 WHERE userid = $8 RETURNING *", [
+            const result = await db.query("UPDATE weekly_recipes SET sunday=$1, monday=$2, tuesday=$3, wednesday=$4, thursday=$5, friday=$6, saturday=$7 WHERE user_id = $8 RETURNING monday, tuesday, wednesday, thursday, friday, saturday, sunday", [
                 getDailyMenu(id), getDailyMenu(id), getDailyMenu(id), getDailyMenu(id), getDailyMenu(id), getDailyMenu(id), getDailyMenu(id), id
             ]); 
             res.status(200).json({ weekRecipes: result.rows });
         } else {
             console.log("different day");
-            const result = await db.query("SELECT * FROM weekly_recipes WHERE userid = $1", [id]);
+            const result = await db.query("SELECT monday, tuesday, wednesday, thursday, friday, saturday, sunday FROM weekly_recipes WHERE user_id = $1", [id]);
             console.log(result);
             res.status(200).json({ weekRecipes: result.rows });
         }
@@ -249,19 +255,14 @@ app.get("/weeklyRecipes", async (req, res) => {
         res.status(500).json({ error: "Internal Server Error" });
     }
 });
-
-app.get("/recipes/lunch", async (req, res)=>{
-    // code that retrieves lucnh recipes from weekly recipes
-});
-app.get("/recipes/breakfast", async (req, res)=>{
-    //code thatretrieves breakfast recipes from weekly recipes
-});
-app.get("/recipes/dinner", async (req, res)=>{
-    // code that retrieves dinner recipes from weekly recipes
-});
-
-app.get("/recipes/snack", async (req, res)=>{
-    // code that retrieves snack recipes from weekly recipes
+app.post("/getrecipe", async (req, res)=>{
+    const {id} = req.body;
+    try {
+        const result = await db.query("SELECT * FROM recipes WHERE id = $1", [id]);
+        res.status(200).json({data: result.rows[0]})
+    } catch (error) {
+        console.log(error);
+    }
 });
 
 app.post("/testPost", (req, res) => {
@@ -601,7 +602,7 @@ async function getDailyMenu(id) {
     }
     try {
         const nutriInfo = await db.query("SELECT * FROM user_nutri_info WHERE user_id = $1", [id]);
-        console.log("userNutri info in getDailyMenu = ", nutriInfo); //////////////////////////////////////////////////////////////////////////////////////ERROR HERE - userDailyMEals is undefined ////////////////////////////////////////////////////////
+        //console.log("userNutri info in getDailyMenu = ", nutriInfo); //////////////////////////////////////////////////////////////////////////////////////ERROR HERE - userDailyMEals is undefined ////////////////////////////////////////////////////////
         const userDailyMeals = nutriInfo.rows[0].daily_meals;
         console.log("userDailyMeals=",userDailyMeals);
         const dailyCalories = await calcDailyCalories(id);
