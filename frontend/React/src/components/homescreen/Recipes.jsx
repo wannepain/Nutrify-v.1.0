@@ -54,6 +54,7 @@ import RecipeCard from "./RecipeCard";
 function Recipes(props) {
   // const [recipesArray, setRecipesArray] = useState(props.recipesArray);
   const recipesArray = props.recipesArray;
+  console.log(recipesArray);
 
   function getDay(dayIndex) {
     const weekday = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];

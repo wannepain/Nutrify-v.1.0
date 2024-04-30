@@ -1,55 +1,175 @@
-import React, { useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import useWindowDimensions from "../utility/getWindowDimension";
 
-async function RecipeCard(props) {
+function RecipeCard(props) {
     const [currentRecipe, setCurrentRecipe] = useState(null);
     const [currentIngredients, setCurrentIngredients] = useState(null);
+    // const [requestData, setRequestData] = useState({});
+    const recipeIds = [];
+    const recipeData =[];
     // const [recipeData, setRecipeData] = useState([]);
-    let recipeData = []
-    const {width, height} = useWindowDimensions();
-    console.log(width);
-    // const recipes = props.recipesArray
-    const {desert, main, first}= props.recipe
-    console.log(desert, main, first);
+    const { desert, main, first } = props.recipe;
+    const { width, height } = useWindowDimensions();
+
     useEffect(() => {
-                const fetchData = async () => {
-                    if(first){
-                        try {
-                            const result = await axios.post("http://localhost:3000/getrecipe", { first }, { withCredentials: true });
-                            recipeData.push(result.rows[0]);
-                            console.log(result);
-                        } catch (error) {
-                            console.error("Error fetching recipes:", error);
-                        }
+        const fetchData = async () => {
+            // let requestData = {};
+            if (first != null) recipeIds.push(first);
+            if (main != null) recipeIds.push(main);
+            if (desert != null) recipeIds.push(desert);
+
+            recipeIds.map(async (currentId,index)=>{
+                try {
+                    console.log(currentId);
+                    const result = await axios.post("http://localhost:3000/getrecipe", {id: currentId});
+                    recipeData.push(result.data.data); //add recipe to array 
+                    console.log(result.data.data);
+                } catch (error) {
+                    console.error("Error fetching recipes:", error);
+                }
+            });
+            
+        };
+
+        if (first || main || desert) {
+            fetchData();
+        }
+    }, [first, main, desert]);
+
+    // Render JSX based on recipeData here
+    if (recipeIds.length > 1) { //if there is more than one recipe
+            if (width<720) { //on mobile
+                return ( 
+                    <div className="recipesContainer">
+                        {recipeData.map((currentData)=>{
+                            <div className="inlineRecipeContainer">
+                                <div className="imgTitleContainer">
+                                    <img src={currentData.rec_img} alt={currentData.rec_name}/>
+                                    <div className="procNameContainer">
+                                        <div className="recipeNameContainer">
+                                            <h2>{currentData.rec_name}</h2>
+                                            <p>recipe description</p>
+                                        </div>
+                                        <div className="prepContainer" >
+                                        <div className="ingredients">
+                                            <h3 className="titleBtn">Ingredients:</h3>
+                                            <ul className="hidden">
+                                                {recipeData[0][ingredients].map((value, index)=><li key={index}>{value}</li>)}
+                                            </ul>
+                                        </div>
+                                        <div className="procedure">
+                                            <h3 className="titleBtn">Procedure:</h3>
+                                            <p className="hiden">{currentData.procedure}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                </div>
+                            </div>
+                        })}
+
+                    </div>
+                )
+            } else { //on pc 
+                return (
+                                <div className="recipesContainer">
+                                    {recipeData.map((currentData, index)=>{
+                                        <div className="inlineRecipeContainer">
+                                            <div className="imgTitleContainer">
+                                                <img src={currentData.rec_img} alt={currentData.rec_name}/>
+                                                <div className="recipeNameContainer">
+                                                    <h2>{currentData.rec_name}</h2>
+                                                    {/* <p>{currentData.desccription}</p> */}
+                                                    <p>recipe description</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    })}
+                                </div>
+                                    
+                            )
+            }
+        } else { // if there is only one recipe
+            if (width<720) {
+                        return (
+                            <div className="recipesContainer">
+                                <img src={recipeData[0].rec_img} alt={recipeData[0].rec_name} />
+                                <h2>{recipeData[0].rec_name}</h2>
+                                <p>recipe description</p>
+                                <div>
+                                    <h3>Ingredients:</h3>
+                                    <ul>
+                                        {recipeData[0][ingredients].map((value, index)=><li key={index}>{value}</li>)}
+                                    </ul>
+                                    <h3>Procedure:</h3>
+                                    <p>{recipeData[0].procedure}</p>
+                                </div>
+                            </div>
+                        )
+                    } else {
+                        return (
+                            <div className="recipesContainer">
+                                <img src={recipeData[0].rec_img} alt={recipeData[0].rec_name} />
+                                <h2>{recipeData[0].rec_name}</h2>
+                                <p>recipe description</p>
+                            </div>
+                        )
                     }
-                    if (main) {
-                        try {
-                            const result = await axios.post("http://localhost:3000/getrecipe", { main }, { withCredentials: true });
-                            recipeData.push(result.rows[0]);
-                            // setCurrentRecipe(result.rows[0]);
-                            // setCurrentIngredients(result.rows[0].ingredients);
-                            console.log(result);
-                        } catch (error) {
-                            console.error("Error fetching recipes:", error);
-                        }
-                    }
-                    if (desert){
-                        try {
-                            const result = await axios.post("http://localhost:3000/getrecipe", { desert }, { withCredentials: true });
-                            recipeData.push(result.rows[0]);
-                            console.log(result);
-                        } catch (error) {
-                            console.error("Error fetching recipes:", error);
-                        }
-                    }
-                    
-                };
-                fetchData();
-            }, []);
+        }
+}
+
+export default RecipeCard;
+
+
+
+// import React, { useState, useEffect} from "react";
+// import axios from "axios";
+// import useWindowDimensions from "../utility/getWindowDimension";
+
+// async function RecipeCard(props) {
+//     const [currentRecipe, setCurrentRecipe] = useState(null);
+//     const [currentIngredients, setCurrentIngredients] = useState(null);
+//     const [requestData, setRequestData] = useState({});
+//     // const [recipeData, setRecipeData] = useState([]);
+//     let recipeData = []
+//     const {width, height} = useWindowDimensions();
+
+//     const {desert, main, first}= props.recipe
+
+//     useEffect(() => {
+
+//         const fetchData = async () => {
+            
+//             // const requestData = {}; changed to a hook 
+//             if (first) setRequestData(prevData => ({ ...prevData, first: first }));
+//             if (main) setRequestData(prevData => ({ ...prevData, main: main }));
+//             if (desert) setRequestData(prevData => ({ ...prevData, desert: desert }));
     
-    if (recipeData.length > 1) { //if there is more than one recipe
-        if (width<720) { //on mobile
+//             try {
+//                 const result = await axios.post("http://localhost:3000/getrecipe", requestData, { withCredentials: true });
+//                 recipeData.push(result.rows[0]);
+//                 console.log(result);
+//             } catch (error) {
+//                 console.error("Error fetching recipes:", error);
+//             }
+//         };
+    
+//         if (first || main || desert) {
+//             fetchData();
+//         }
+//     }, []);
+
+//     console.log(recipeData);
+    
+//     return recipeData;
+    
+// };
+
+// export default RecipeCard;
+
+
+    // if (recipeData.length > 1) { //if there is more than one recipe
+    //     if (width<720) { //on mobile
             // return ( 
             //     <div className="recipesContainer">
             //         <div className="inlineRecipeContainer">
@@ -78,54 +198,52 @@ async function RecipeCard(props) {
             //         </div>
             //     </div>
             // )
-            return <h1>will be updated</h1>
-        } else {
-            return (
-                            <div className="recipesContainer">
-                                {recipeData.map((value, index)=>{
-                                    <div className="inlineRecipeContainer">
-                                        <div className="imgTitleContainer">
-                                            <img src={value.recipeImg} alt={value.name}/>
-                                            <div className="recipeNameContainer">
-                                                <h2>{value.name? value.name: null}</h2>
-                                                <p>{value.desccription? value.desccription:null}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                })}
-                            </div>
+//             return <h1>will be updated</h1>
+//         } else {
+//             return (
+//                             <div className="recipesContainer">
+//                                 {recipeData.map((value, index)=>{
+//                                     <div className="inlineRecipeContainer">
+//                                         <div className="imgTitleContainer">
+//                                             <img src={value.recipeImg} alt={value.name}/>
+//                                             <div className="recipeNameContainer">
+//                                                 <h2>{value.name? value.name: null}</h2>
+//                                                 <p>{value.desccription? value.desccription:null}</p>
+//                                             </div>
+//                                         </div>
+//                                     </div>
+//                                 })}
+//                             </div>
                                 
-                        )
-        }
-    } else { // if there is only one recipe
-        if (width<720) {
-                    return (
-                        <div className="recipesContainer">
-                            <img src={recipeData[0].rec_img} alt={recipeData[0].name} />
-                            <h2>{recipeData[0].name}</h2>
-                            <p>recipe description</p>
-                            <div>
-                                <h3>Ingredients:</h3>
-                                <ul>
-                                    {recipeData[0][ingredients].map((value, index)=><li key={index}>{value}</li>)}
-                                </ul>
-                                <h3>Procedure:</h3>
-                                <p>{recipeData[0].procedure}</p>
-                            </div>
-                        </div>
-                    )
-                } else {
-                    return (
-                        <div className="recipesContainer">
-                            <img src={recipeData[0].rec_img} alt={recipeData[0].name} />
-                            <h2>{recipeData[0].name}</h2>
-                            <p>{recipeData[0].desccription}</p>
-                        </div>
-                    )
-                }
-    }
-}
-    export default RecipeCard;
+//                         )
+//         }
+//     } else { // if there is only one recipe
+//         if (width<720) {
+//                     return (
+//                         <div className="recipesContainer">
+//                             <img src={recipeData[0].rec_img} alt={recipeData[0].name} />
+//                             <h2>{recipeData[0].name}</h2>
+//                             <p>recipe description</p>
+//                             <div>
+//                                 <h3>Ingredients:</h3>
+//                                 <ul>
+//                                     {recipeData[0][ingredients].map((value, index)=><li key={index}>{value}</li>)}
+//                                 </ul>
+//                                 <h3>Procedure:</h3>
+//                                 <p>{recipeData[0].procedure}</p>
+//                             </div>
+//                         </div>
+//                     )
+//                 } else {
+//                     return (
+//                         <div className="recipesContainer">
+//                             <img src={recipeData[0].rec_img} alt={recipeData[0].name} />
+//                             <h2>{recipeData[0].name}</h2>
+//                             <p>{recipeData[0].desccription}</p>
+//                         </div>
+//                     )
+//                 }
+//     }
     
     // for (let i = 0; i < recipes.length; i++) {
     //     const id = recipes[i]; //should be the id of a recipe
