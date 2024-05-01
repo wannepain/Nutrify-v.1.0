@@ -2,8 +2,10 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import NavBar from "./NavBar";
 import Recipes from "./Recipes";
+import AddRecipe from "./AddRecipe";
 function Homescreen(props) {
   const [recipes, setRecipes]= useState(null)
+  const [isOnHomescreen, setIsOnHomescreen] = useState(true);
   //Axios interceptor for adding JWT token to requests
   axios.interceptors.request.use(
     (config) => {
@@ -29,10 +31,10 @@ function Homescreen(props) {
             });
             Object.keys(result.data.weekRecipes[0]).forEach((day)=>{
               resultRecipes.push(result.data.weekRecipes[0][day]);
-              console.log(resultRecipes);
+              // console.log(resultRecipes);
             })
             setRecipes(resultRecipes);
-            console.log(result);
+            // console.log(result);
           } catch (error) {
             if (axios.isCancel(error)) {
               console.log('Request canceled', error.message);
@@ -51,8 +53,8 @@ function Homescreen(props) {
       }, []);
 
     return <div id="homescreenDiv">
-        <Recipes recipesArray={recipes}/>
-        <NavBar />
+        {isOnHomescreen? <Recipes recipesArray={recipes}/> : <AddRecipe />}
+        <NavBar setIsOnHomescreen={setIsOnHomescreen}/>
       </div>
 }
 export default Homescreen;
