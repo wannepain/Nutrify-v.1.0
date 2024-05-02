@@ -203,16 +203,17 @@ app.post("/add/recipe", async (req, res) => {
     //     "fats": 28
     //     "meal": "lunch" or "breakfast" or "dinner"
     //     "course": "first" or "main" or "desert"
+    //     "description": recipe description, the shorter, the better
     //   }
-    const { username, rec_name, rec_img, ingredients, procedure, allergies, diet, calories, proteins, carbs, fats, meal, course } = req.body;
+    const { username, rec_name, rec_img, ingredients, procedure, allergies, diet, calories, proteins, carbs, fats, meal, course, description } = req.body;
     try {
         const userExists = await db.query("SELECT id FROM users WHERE username = $1", [username]);
         if (userExists.rows.length === 0) {
             res.status(409).json({ message: "user not found" }); // Assuming you want to return "user not found" for conflict
         } else {
             try {
-                const result = await db.query("INSERT INTO recipes (user_id, rec_name, rec_img, ingredients, procedure, allergies, diet, calories, proteins, carbs, fats, meal, course) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)", [
-                    userExists.rows[0].id, rec_name, rec_img, ingredients, procedure, allergies, diet, calories, proteins, carbs, fats, meal, course
+                const result = await db.query("INSERT INTO recipes (user_id, rec_name, rec_img, ingredients, procedure, allergies, diet, calories, proteins, carbs, fats, meal, course, description) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)", [
+                    userExists.rows[0].id, rec_name, rec_img, ingredients, procedure, allergies, diet, calories, proteins, carbs, fats, meal, course, description
                 ]);
                 res.status(200).json({ message: "recipe added successfully" });
             } catch (error) {

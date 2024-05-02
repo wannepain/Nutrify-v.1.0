@@ -543,5 +543,124 @@ input:focus{
             }
     }   
     
+/*///////////////////////////////////Add Recipe card styling //////////////////////////////////////////////////////////////*/
+    /*PC*/
+        #firstColumnDiv,
+        #secondColumnDiv,
+        #thirdColumnDiv,
+        #fourthColumnDiv{
+            display: flex;
+            flex-direction: column;
+            width: 25%;
+            margin: 0.3rem;
+        }
+        #parentRecipeDiv{
+            display: flex;
+        }
+        #imgInputDiv{
+            position: relative;
+        }
+        #imgInputDiv img{
+            width: 100%;
+            border-radius: 0.3rem;
+        }
+        #rec_img{
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 100%;
+            opacity: 0;
+        }
+        #parentRecipeDiv textarea{
+            background-color: transparent;
+            text-decoration: none;
+            border: 2px solid #101820;
+            border-radius: 0.3rem;
+            margin: 0.3rem 0;
+        }
+        #parentRecipeDiv input{
+            padding: 0;
+        }
+        #allergenInputDiv{
+            display: flex;
+            width: 100%;
+            margin-bottom: 0.3rem;
+        }
+        #allergenInputDiv button{
+            padding: 0 0.2rem;
+            margin-left: 0.3rem;
+            border-radius: 0.3rem;
+            border: none;
+        }
+        #allergenInputDiv input{
+            border-radius: 0.3rem;
+            padding: 0 0.3rem;
+            flex-grow: 2;
+        }
+        .sideBySideMacro{
+            display: flex;
+        }
+        .column{
+            display: flex;
+            flex-direction: column;
+            width: 49%;
+        }
+        .column input{
+            border: 2px solid #101820;
+            border-radius: 0.3rem;
+        }
+        .marginRight{
+            margin-right: 2%;
+        }
+        #macroComment{
+            margin-bottom: 0.3rem;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #macroComment p{
+            opacity: 0.8;
+        }
+        #dietDiv{
+            display: flex;
+            flex-direction: column;
+        }
+        #dietDiv button{
+            border-radius: 0.3rem;
+            border: none;
+            margin-bottom: 0.3rem;
+            padding: 0.5rem;
+            font-size: 1.2rems;
+        }
 
-    
+        #ingredientsDiv,
+        #procedureDiv{
+            position: relative;
+            display: flex;
+            width: 100%;
+            flex-direction: column;
+        }
+
+        #ingredientsDiv label,
+        #procedureDiv label{
+            position: absolute;
+            /* z-index: 2; */
+            background-color: #FDFDFF;
+            border: none;
+            border-radius: 0.3rem;
+            padding: 0.1rem;
+        }
+        #courseSmallDiv button,
+        #mealSmallDiv button{
+            border: none;
+            border-radius: 0.3rem;
+            padding: 0.2rem;
+            margin: 0.1rem 0;
+        }
+        #courseSmallDiv,
+        #mealSmallDiv{
+            display: flex;
+            flex-direction: column;
+        }
