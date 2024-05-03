@@ -93,9 +93,13 @@ function RecipeCard(props) {
         }
     } else { // there is only one recipe
         if (isSmallScreen) {
+            console.log(recipeData[0]?.meal, props.currentMeal);
             jsxToRender = (
-                <div className="recipesContainer">
-                    <img src={recipeData[0]?.rec_img ? recipeData[0].rec_img : "./../../../public/resources/placeholder.jpg"} alt={recipeData[0]?.rec_name} />
+                <div>
+                {recipeData[0]?.meal === props.currentMeal? 
+                    <div className="recipesContainer" data-value={recipeData[0]?.meal}>
+                    {/* <img src={recipeData[0]?.rec_img ? recipeData[0].rec_img : "./../../../public/resources/placeholder.jpg"} alt={recipeData[0]?.rec_name} /> */}
+                    <img src="./../../../public/resources/placeholder.jpg" alt="" />
                     <h2>{recipeData[0]?.rec_name}</h2>
                     <p>{recipeData[0]?.description}</p>
                     <div>
@@ -106,7 +110,8 @@ function RecipeCard(props) {
                         <h3>Procedure:</h3>
                         <p>{recipeData[0]?.procedure}</p>
                     </div>
-                </div>
+                </div>: null}
+            </div>
             );
         } else {
             // console.log(recipeData[0]);
