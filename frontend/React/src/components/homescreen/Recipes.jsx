@@ -50,11 +50,14 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import RecipeCard from "./RecipeCard";
+import RecipePopUp from "./RecipePopUp";
 
 function Recipes(props) {
   // const [recipesArray, setRecipesArray] = useState(props.recipesArray);
   const recipesArray = props.recipesArray;
-  console.log(recipesArray);
+  const[isRecipeClicked, setIsRecipeClicked] = useState(false);
+  const [dataOfClickedRecipe, setDataOfClickedRecipe] = useState(null);
+  const [jsxToClicked, setJsxToClicked] = useState(null);
 
   function getDay(dayIndex) {
     const weekday = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -62,6 +65,13 @@ function Recipes(props) {
     const adjustedIndex = (dayIndex % 7 + 7) % 7; // Ensures index is always between 0 and 6
     return weekday[adjustedIndex];
   }
+
+  function handleCardClick(recipeData) {
+    setDataOfClickedRecipe(recipeData);
+    setIsRecipeClicked(true);
+    setJsxToClicked(<RecipePopUp recipeData={recipeData} setIsRecipeClicked={setIsRecipeClicked} />);
+  }
+
   // Function to handle meal title click
   const handleMealTitleClick = (index) => {
     setActiveMealIndex(index); // Set active meal index
@@ -104,7 +114,7 @@ function Recipes(props) {
                 <RecipeCard
                   key={`${dayIndex}-${index}`}
                   recipe={recipe}
-                  type={hasMultipleCourses ? null : "normall"}
+                  setIsRecipeClicked={handleCardClick}
                   // size={index === 0 ? "large" : "small"}
                 />
               );
@@ -112,6 +122,7 @@ function Recipes(props) {
           </div>
         </div>
       ))}
+      {isRecipeClicked && jsxToClicked}
     </div>
   );
 }

@@ -37,6 +37,11 @@ function RecipeCard(props) {
         setIsSmallScreen(width < 720);
     }, [width]);
 
+    function handleClick(event) {
+        const dataOfClicked = event.currentTarget.getAttribute('data-value');
+        props.setIsRecipeClicked(dataOfClicked);
+    }
+
     let jsxToRender;
     if (recipeData.length > 1) { // there is more than one recipe
         if (isSmallScreen) {
@@ -49,7 +54,7 @@ function RecipeCard(props) {
                                 <div className="procNameContainer">
                                     <div className="recipeNameContainer">
                                         <h2>{currentData.rec_name}</h2>
-                                        <p>recipe description</p>
+                                        <p>{currentData.description}</p>
                                     </div>
                                     <div className="prepContainer" >
                                         <div className="ingredients">
@@ -77,8 +82,8 @@ function RecipeCard(props) {
                             <div className="imgTitleContainer">
                                 <img src={currentData.rec_img} alt={currentData.rec_name}/>
                                 <div className="recipeNameContainer">
-                                    <h2>{currentData.rec_name}</h2>
-                                    <p>recipe description</p>
+                                    <h2 onClick={handleClick} data-value={currentData}>{currentData.rec_name}</h2>
+                                    <p>{currentData.description}</p>
                                 </div>
                             </div>
                         </div>
@@ -92,7 +97,7 @@ function RecipeCard(props) {
                 <div className="recipesContainer">
                     <img src={recipeData[0]?.rec_img ? recipeData[0].rec_img : "./../../../public/resources/placeholder.jpg"} alt={recipeData[0]?.rec_name} />
                     <h2>{recipeData[0]?.rec_name}</h2>
-                    <p>recipe description</p>
+                    <p>{recipeData[0]?.description}</p>
                     <div>
                         <h3>Ingredients:</h3>
                         <ul>
@@ -104,11 +109,12 @@ function RecipeCard(props) {
                 </div>
             );
         } else {
+            // console.log(recipeData[0]);
             jsxToRender = ( // the card must be clickable, on click the whole recipe should appear over the rest of the page
                 <div className="recipesContainer">
                     <img src={recipeData[0]?.rec_img ? recipeData[0].rec_img : "./../../../public/resources/placeholder.jpg"} alt={recipeData[0]?.rec_name} />
-                    <h2>{recipeData[0]?.rec_name}</h2>
-                    <p>recipe description</p>
+                    <h2  onClick={handleClick} data-value={JSON.stringify(recipeData[0])}>{recipeData[0]?.rec_name}</h2>
+                    <p>{recipeData[0]?.description}</p>
                 </div>
             );
         }
