@@ -756,5 +756,7 @@ input:focus{
             display: flex;
             flex-direction: column;
         }
-
+        .textAreaHidden{
+            display: none;
+        }
 
