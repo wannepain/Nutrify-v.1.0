@@ -4,7 +4,8 @@ import NavBar from "./NavBar";
 import Recipes from "./Recipes";
 import AddRecipe from "./AddRecipe";
 function Homescreen(props) {
-  const [recipes, setRecipes]= useState(null)
+  const [recipes, setRecipes]= useState(null);
+  const [ogRecipes, setOgRecipes] = useState(null);
   const [isOnHomescreen, setIsOnHomescreen] = useState(true);
   //Axios interceptor for adding JWT token to requests
   axios.interceptors.request.use(
@@ -29,6 +30,7 @@ function Homescreen(props) {
             const result = await axios.post("http://localhost:3000/weeklyRecipes", {}, {
               withCredentials: true
             });
+            setOgRecipes(result.data.weekRecipes[0]);
             Object.keys(result.data.weekRecipes[0]).forEach((day)=>{
               resultRecipes.push(result.data.weekRecipes[0][day]);
               // console.log(resultRecipes);
@@ -53,7 +55,7 @@ function Homescreen(props) {
       }, []);
 
     return <div id="homescreenDiv">
-        {isOnHomescreen? <Recipes recipesArray={recipes}/> : <AddRecipe />}
+        {isOnHomescreen? <Recipes recipesArray={recipes} ogRecipes={ogRecipes}/> : <AddRecipe />}
         <NavBar setIsOnHomescreen={setIsOnHomescreen}/>
       </div>
 }

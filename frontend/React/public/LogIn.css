@@ -540,6 +540,10 @@ input:focus{
                 opacity: 0.9;
                 user-select: none;
             }
+            .mealTitleActive{
+                opacity: 1;
+                color: #FFC600;
+            }
             .currentMeal{
                 opacity: 1;
             }

@@ -12,10 +12,12 @@ function Recipes(props) {
   const [dataOfClickedRecipe, setDataOfClickedRecipe] = useState(null);
   const [isSmallScreen, setIsSmallScreen] = useState(false)
   const [jsxToClicked, setJsxToClicked] = useState(null);
+
   const [currentMeal, setCurrentMeal] = useState("breakfast");
 
   useEffect(() => {
       setIsSmallScreen(width < 720);
+      console.log(props.ogRecipes, recipesArray);
   }, [width]);
 
 
@@ -35,6 +37,7 @@ function Recipes(props) {
   // Function to handle meal title click
   function handleMealClick(event) {
     const clickedMeal = event.currentTarget.getAttribute('data-value');
+    event.currentTarget.style = { opacity: 1, color: '#FFC600' };
     setCurrentMeal(clickedMeal);
     console.log(width);
     console.log(isSmallScreen);
@@ -62,7 +65,7 @@ function Recipes(props) {
                 //   index === activeMealIndex ? "active" : ""
                 // }`}
                 data-value={meal}
-                className="mealTitle"
+                className={meal === currentMeal? "mealTitle mealTitleActive" : "mealTitle"}
                 onClick={handleMealClick}
               >
                 {meal}
@@ -80,6 +83,7 @@ function Recipes(props) {
                   recipe={recipe}
                   setIsRecipeClicked={handleCardClick}
                   currentMeal={currentMeal}
+                  recipesMeal={meal}
                   // size={index === 0 ? "large" : "small"}
                 />
               );
