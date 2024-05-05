@@ -781,7 +781,13 @@ input:focus{
             display: flex;
             width: 100%;
             padding: 0 1rem;
-            justify-content: space-around;
+            justify-content: flex-start;
+        }
+        #addRecipeNav a{
+            display: flex;
+        }
+        #addRecipeNav a img{
+            filter: invert(100%) sepia(99%) saturate(1048%) hue-rotate(180deg) brightness(108%) contrast(103%);
         }
         #addRecipeContent{
             display: flex;
@@ -799,22 +805,133 @@ input:focus{
         #imgInputDiv img{
             width: 100%;
             border-radius: 0.3rem;
+            
+        }
+        #svgAddImage{
             filter: invert(100%) sepia(99%) saturate(1048%) hue-rotate(180deg) brightness(108%) contrast(103%);
+        }
+        #rec_img{
+            opacity: 0;
         }
         #rec_img{
             position: absolute;
             left: 0;
             top: 0;
-            height: 100%;
-            width: 100%;
-            opacity: 0;
+            width: 70%;
+            display: none;
+            z-index: 2;
         }
         .addRecipeHidden{
             opacity: 0;
         }
-        #addRecipeContent input{
+        #addRecipeContent input[type=text]{
             width: 80%;
             border: none;
             border-bottom: 2px solid #FDFDFF;
             padding-bottom: 0;
         }
+        #addRecipeContent p{
+            margin: 0.5rem;
+            width: 80%;
+            opacity: 0.9;
+        }
+        #continueBtn{
+            width: 100%;
+            font-size: 1.2rem;
+            background: #FFC600;
+            padding: 0.2rem;
+            border: none;
+            border-radius: 0.3rem;
+        }
+        #addRecipeInner{
+            width: 100%;
+        }
+        #allergenInputDiv,
+        #ingredientsInputDiv{
+            width: 100%;
+            display: flex;
+            flex-direction: row;
+            align-content: stretch;
+            justify-content: center;
+            margin-bottom: 0.5rem;
+        }
+        #allergenInputDiv input[type=text],
+        #ingredientsInputDiv input[type=text]{
+            flex-grow: 2;
+            padding-top: 0.2rem;
+        }
+        #allergenInputDiv button,
+        #ingredientsInputDiv button{
+            width: 10%;
+            margin-left: 1rem;
+            border: none;
+            border-radius: 0.3rem;
+            background: #FFC600;
+            font-size: 1.2rem;
+        }
+        #addRecipeFirstRow,
+        #addRecipeSecondRow{
+            display: flex;
+            width: 100%;
+        }
+        #addRecipeFirstRow input[type=number],
+        #addRecipeSecondRow input[type=number]{
+            border: none;
+            border-bottom: 2px solid #FDFDFF;
+            padding-bottom: 0;
+            width: 100%;
+            padding-top: 0.2rem;
+        }
+        #addRecipeFirstRow > :first-child,
+        #addRecipeSecondRow > :first-child{
+            margin-right: 0.5rem;
+        }
+        #addRecipeSecondRow{
+            margin-bottom: 0.5rem;
+        }
+        .addRecipeDietBtn,
+        .addRecipeMealBtn,
+        .addRecipeCourseBtn{
+            width: 100%;
+            color: #101820 !important;
+            padding: 0.2rem;
+            border: none;
+            border-radius: 0.3rem;
+            background-color: #FDFDFF;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+        }
+        #addRecipeContent textarea{
+            width: 100%;
+            resize: none;
+            margin-bottom: 0.5rem;
+            border: none;
+            border-radius: 0.3rem;
+            color: #101820;
+            padding: 0.3rem;
+            outline: none;
+        }
+        #addRecipeContent h2{
+            width: 100%;
+            display: flex;
+            align-items: start;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        .addRecipeAboveBtnTitle{
+            margin-bottom: 0.3rem;
+        }
+        /*hides the arrows from number input*/
+        /* Chrome, Safari, Edge, Opera */
+            input::-webkit-outer-spin-button,
+            input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+            }
+
+        /* Firefox */
+            input[type=number] {
+                appearance: inherit;
+                -moz-appearance: textfield;
+            }
