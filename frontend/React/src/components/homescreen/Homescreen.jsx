@@ -54,7 +54,7 @@ function Homescreen(props) {
         };
       }, []);
 
-    return <div id="homescreenDiv">
+    return <div id="homescreenDiv" className={!isOnHomescreen && "homescreenCenter"}>
         {isOnHomescreen? <Recipes recipesArray={recipes} ogRecipes={ogRecipes}/> : <AddRecipe />}
         <NavBar setIsOnHomescreen={setIsOnHomescreen}/>
       </div>

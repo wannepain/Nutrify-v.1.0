@@ -4,8 +4,9 @@ import TextArea from "./add recipe/TextArea";
 
 function AddRecipe(props) {
     const { width } = useWindowDimensions();
-    const [addedImg, setAddedImg] = useState('')
+    const [addedImg, setAddedImg] = useState(null)
     const [isDone, setIsDone] = useState({"first": false, "second": false, "third": false, "fourth": false});
+    const [currentStep, setCurrentStep] = useState("first")
 
     function handleSubmit(event) {
         event.preventDefault();
@@ -14,24 +15,216 @@ function AddRecipe(props) {
 
     function handleClick(event) {
         const gotClicked = event.currentTarget.getAttribute('data-value');
-    }
-    function handleReturn(event) {
-        const returnPart = event.currentTarget.getAttribute('data-value');
-        setIsDone(prevDone => ({
-            ...prevDone,
-            [returnPart]: false
-        }));
-    }
-    function handleNext(event) {
-        const returnPart = event.currentTarget.getAttribute('data-value');
-        setIsDone(prevDone => ({
-            ...prevDone,
-            [returnPart]: true
-        }));
+        event.preventDefault();
     }
 
-    let jsxToRender
-    // if (width > 720 ) { // on pc 
+    function handleChange(event) {
+        const file = event.target.files[0]; // Get the first selected file
+        const reader = new FileReader();
+
+        reader.onload = function(event) {
+            const imageDataUrl = event.target.result; // Get the base64 encoded data URL
+            setAddedImg(imageDataUrl); // Set the selected image as base64 encoded data
+        };
+
+        if (file) {
+            reader.readAsDataURL(file); // Read the selected file as a data URL
+        }
+    }
+    function handleReturn(event) {
+        const currentPart = event.currentTarget.getAttribute("data-value");
+        let prevPart;
+        switch (currentPart) {
+            case "second":
+                prevPart = "first";
+                break;
+            case "third":
+                prevPart = "second";
+                break;
+            case "fourth":
+                prevPart = "third";
+                break;
+
+            default:
+                prevPart = "first"
+                break;
+        }
+        setCurrentStep(prevPart);
+        setIsDone((prevDone) => ({
+          ...prevDone,
+          [currentPart]: false,
+        }));
+      }
+      
+    function handleNext(event) {
+      const currentPart = event.currentTarget.getAttribute("data-value");
+      let nextPart;
+      switch (currentPart) {
+        case "first":
+            nextPart = "second";
+            break;
+        case "second":
+            nextPart = "third";
+            break;
+        case "third":
+            nextPart = "fourth";
+            break;
+
+        default:
+            nextPart = "second"
+            break;
+      }
+      setCurrentStep(nextPart);
+      setIsDone((prevDone) => ({
+        ...prevDone,
+        [currentPart]: true,
+      }));
+    }      
+
+    const jsxToRender = {first:( //handle the file input
+        <div id="addRecipeContent">
+            <div id="imgInputDiv">
+                <img src={addedImg !== null ? addedImg : "./../../../public/resources/add_image.svg"} alt="recipe image" />
+                <input type="file" name="rec_img" id="rec_img" onChange={handleChange}/>
+            </div>
+            <input type="text" name="rec_name" placeholder="Recipe Name"/>
+            <input type="text" name="rec_description" placeholder="Recipe Description"/>
+        </div>
+    ), second:(
+        <div id="addRecipeContent">
+            <div id="allergenInputDiv">
+                <input type="text" name="allergen_input" id="allergen_input" />
+                <button type="button" value="add" onClick={handleClick} data-value="add_allergen">Add</button>
+            </div>
+            <div id="allergenContainerDiv">
+
+            </div>
+
+            <input type="number" name="cals" id="" />
+            <input type="number" name="prots" id="" />
+            <input type="number" name="fats" id="" />
+            <input type="number" name="carbs" id="" />
+            <button type="button" value="omnivorous" onClick={handleClick}>Omnivorous</button>
+            <button type="button" value="vegetarian" onClick={handleClick}>Vegetarian</button>
+            <button type="button" value="vegan" onClick={handleClick}>Vegan</button>
+        </div>
+
+    ), third:(
+        <div id="addRecipeContent">
+            <TextArea labelText="Ingredients" name="ingredients"/>
+            <button type="button" onClick={handleClick}>Breakfast</button>
+            <button type="button" onClick={handleClick}>Lunch</button>
+            <button type="button" onClick={handleClick}>Dinner</button>
+            <button type="button" onClick={handleClick}>Snack</button>
+        </div>
+    ), fourth:(
+        <div id="addRecipeContent">
+            <TextArea labelText="Procedure" name="procedure"/>
+            <button type="button">First Course</button>
+            <button type="button">Main Course</button>
+            <button type="button">Desser</button>
+            <button type="submit">Submit</button>
+        </div>
+    )}
+    
+    return (
+        <form action="" id="formAddRecipe" onSubmit={handleSubmit}>
+          <div id="addRecipeInner">
+            <div id="addRecipeNav">
+              {/* "Return" button */}
+              {
+                <a data-value={currentStep} onClick={handleReturn} className={currentStep === "first" && "addRecipeHidden"}>
+                  <img src="" alt="" />Return
+                </a>
+              }
+              {/* "Next" button */}
+              {
+                <a data-value={currentStep} onClick={handleNext}  className={currentStep === "fourth" && "addRecipeHidden"}>
+                  <img src="" alt="" />Next
+                </a>
+              }
+            </div>
+            <div id="addRecipeContent">
+                {/* Render the current step */}
+                {jsxToRender[currentStep]}
+            </div>
+          </div>
+        </form>
+      );
+}
+
+export default AddRecipe;
+
+
+
+// if (!isDone.first) {
+        //     jsxToRender = (
+        //         <form action="" id="formAddRecipe" onSubmit={handleSubmit}>
+        //             <div id="addRecipeNav">
+        //                 <a onClick={handleReturn} data-value="first" id="addRecipeHidden"><img src="" alt="" />Return</a>
+        //                 <a onClick={handleNext} data-value="first"><img src="" alt="" />Next</a>
+        //             </div>
+        //             <div  id="addRecipeContent">
+        //                 <div id="imgInputDiv">
+        //                     <img src={addedImg? addedImg : "./../../../public/resources/placeholder.jpg"} alt="recipe image" />
+        //                     <input type="file" name="rec_img" id="rec_img"/>
+        //                 </div>
+        //                 <input type="text" name="rec_name" />
+        //                 <input type="text" name="rec_description" />
+        //             </div>
+        //         </form>
+        //     )
+        // } else if(!isDone.second){
+        //     jsxToRender = (
+        //         <form action="" id="formAddRecipe" onSubmit={handleSubmit}>
+        //             <div id="addRecipeNav">
+        //                 <a onClick={handleReturn} data-value="second"><img src="" alt="" />Return</a>
+        //                 <a onClick={handleNext} data-value="second"><img src="" alt="" />Next</a>
+        //             </div>
+        //             <div  id="addRecipeContent">
+        //                 <div id="allergenInputDiv">
+        //                     <input type="text" name="allergen_input" id="allergen_input" />
+        //                     <button type="button" value="add" onClick={handleClick} data-value="add_allergen">Add</button>
+        //                 </div>
+        //                 <div id="allergenContainerDiv">
+
+        //                 </div>
+        //                 <input type="number" name="cals" id="" />
+        //                 <input type="number" name="prots" id="" />
+        //                 <input type="number" name="fats" id="" />
+        //                 <input type="number" name="carbs" id="" />
+
+        //                 <button type="button" value="omnivorous" onClick={handleClick}>Omnivorous</button>
+        //                 <button type="button" value="vegetarian" onClick={handleClick}>Vegetarian</button>
+        //                 <button type="button" value="vegan" onClick={handleClick}>Vegan</button>
+        //             </div>
+        //         </form>
+        //     )
+        // } else if(!isDone.third){
+        //     jsxToRender = (
+        //         <form action="" id="formAddRecipe" onSubmit={handleSubmit}>
+        //             <div id="addRecipeNav">
+        //                 <a onClick={handleReturn} data-value="third"><img src="" alt="" />Return</a>
+        //                 <a onClick={handleNext} data-value="third"><img src="" alt="" />Next</a>
+        //             </div>
+        //             <div id="addRecipeContent">
+        //                 <TextArea labelText="Ingredients" name="ingredients"/>
+        //                 <button type="button" onClick={handleClick}>Breakfast</button>
+        //                 <button type="button" onClick={handleClick}>Lunch</button>
+        //                 <button type="button" onClick={handleClick}>Dinner</button>
+        //                 <button type="button" onClick={handleClick}>Snack</button>
+        //             </div>
+        //         </form>
+        //     )
+        // } else if(!isDone.fourth){
+        //     jsxToRender = (
+                
+        //     )
+        // }
+
+
+
+// if (width > 720 ) { // on pc 
     //     jsxToRender = (
     //         <form onSubmit={handleSubmit}>
     //             <div id="parentRecipeDiv">
@@ -170,87 +363,3 @@ function AddRecipe(props) {
             
     //     )
     // }
-    if (width > 720) { //pc
-        if (!isDone.first) {
-            jsxToRender = (
-                <div>
-                    <div>
-                        <a onClick={handleReturn} data-value="first"><img src="" alt="" />Return</a>
-                        <a onClick={handleNext} data-value="first"><img src="" alt="" />Next</a>
-                    </div>
-                    <div>
-                        <div id="imgInputDiv">
-                            <img src={addedImg? addedImg : "./../../../public/resources/placeholder.jpg"} alt="recipe image" />
-                            <input type="file" name="rec_img" id="rec_img"/>
-                        </div>
-                        <input type="text" name="rec_name" />
-                        <input type="text" name="rec_description" />
-                    </div>
-                </div>
-            )
-        } else if(isDone.first){
-            jsxToRender = (
-                <div>
-                    <div>
-                        <a onClick={handleReturn} data-value="second"><img src="" alt="" />Return</a>
-                        <a onClick={handleNext} data-value="second"><img src="" alt="" />Next</a>
-                    </div>
-                    <div>
-                        <div id="allergenInputDiv">
-                            <input type="text" name="allergen_input" id="allergen_input" />
-                            <button type="button" value="add" onClick={handleClick} data-value="add_allergen">Add</button>
-                        </div>
-                        <div id="allergenContainerDiv">
-
-                        </div>
-                        <input type="number" name="cals" id="" />
-                        <input type="number" name="prots" id="" />
-                        <input type="number" name="fats" id="" />
-                        <input type="number" name="carbs" id="" />
-
-                        <button type="button" value="omnivorous">Omnivorous</button>
-                        <button type="button" value="vegetarian">Vegetarian</button>
-                        <button type="button" value="vegan">Vegan</button>
-                    </div>
-                </div>
-            )
-        } else if(isDone.second){
-            jsxToRender = (
-                <div>
-                    <div>
-                        <a onClick={handleReturn} data-value="first"><img src="" alt="" />Return</a>
-                        <a onClick={handleNext} data-value="first"><img src="" alt="" />Next</a>
-                    </div>
-                    <div>
-                        <TextArea />
-                        <button type="button">Breakfast</button>
-                        <button type="button">Lunch</button>
-                        <button type="button">Dinner</button>
-                        <button type="button">Snack</button>
-                    </div>
-                </div>
-            )
-        } else if(isDone.third){
-            jsxToRender = (
-                <div>
-                    <div>
-                        <a onClick={handleReturn} data-value="first"><img src="" alt="" />Return</a>
-                        <a onClick={handleNext} data-value="first"><img src="" alt="" />Next</a>
-                    </div>
-                    <div>
-                        <TextArea />
-                        <button type="button">First Course</button>
-                        <button type="button">Main Course</button>
-                        <button type="button">Desser</button>
-                    </div>
-                </div>
-            )
-        }
-    } else { //mobile
-        
-    }
-
-    return jsxToRender;
-}
-
-export default AddRecipe;

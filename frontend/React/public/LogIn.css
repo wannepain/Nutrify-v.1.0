@@ -636,8 +636,13 @@ input:focus{
         }
     
 /*///////////////////////////////////Add Recipe card styling //////////////////////////////////////////////////////////////*/
+.homescreenCenter{
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+}
     /*PC*/
-        #firstColumnDiv,
+        /* #firstColumnDiv,
         #secondColumnDiv,
         #thirdColumnDiv,
         #fourthColumnDiv{
@@ -738,7 +743,6 @@ input:focus{
         #ingredientsDiv label,
         #procedureDiv label{
             position: absolute;
-            /* z-index: 2; */
             background-color: #FDFDFF;
             border: none;
             border-radius: 0.3rem;
@@ -758,5 +762,59 @@ input:focus{
         }
         .textAreaHidden{
             display: none;
-        }
+        } */
 
+        #formAddRecipe{
+            width: 40%;
+            height: fit-content;
+            display: flex;
+            flex-direction: column;
+            background-color: #101820;
+            border: none;
+            border-radius: 0.3rem;
+            padding: 0.5rem;
+        }
+        #formAddRecipe *{
+            color: #FDFDFF;
+        }
+        #addRecipeNav{
+            display: flex;
+            width: 100%;
+            padding: 0 1rem;
+            justify-content: space-around;
+        }
+        #addRecipeContent{
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            justify-content: center;
+            align-items: center;
+            padding: 0.5rem;
+        }
+        #imgInputDiv{
+            position: relative;
+            display: flex;
+            justify-content: center;
+        }
+        #imgInputDiv img{
+            width: 100%;
+            border-radius: 0.3rem;
+            filter: invert(100%) sepia(99%) saturate(1048%) hue-rotate(180deg) brightness(108%) contrast(103%);
+        }
+        #rec_img{
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 100%;
+            opacity: 0;
+        }
+        .addRecipeHidden{
+            opacity: 0;
+        }
+        #addRecipeContent input{
+            width: 80%;
+            border: none;
+            border-bottom: 2px solid #FDFDFF;
+            padding-bottom: 0;
+        }
