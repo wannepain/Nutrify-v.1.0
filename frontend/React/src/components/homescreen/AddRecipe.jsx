@@ -7,8 +7,10 @@ function AddRecipe(props) {
     const [addedImg, setAddedImg] = useState(null)
     const [isDone, setIsDone] = useState({"first": false, "second": false, "third": false, "fourth": false});
     const [currentStep, setCurrentStep] = useState("first")
-    const [showFileInput, setShowFileInput] = useState(false)
-
+    // const [selectedBtns, setSelectedBtns] = useState({diet: [], meal: [], course: null});
+    const [diet, setDiet] = useState([]);
+    const [meal, setMeal] = useState([]);
+    const [course, setCourse] = useState(null);
     function handleSubmit(event) {
         event.preventDefault();
         //make an axios post handle errors 
@@ -17,7 +19,60 @@ function AddRecipe(props) {
     function handleClick(event) {
         const gotClicked = event.currentTarget.getAttribute('data-value');
         event.preventDefault();
-    }
+        if (gotClicked === "add_allergen" || gotClicked === "add_ingredients") {
+            // Special code
+        } else {
+            // Code for all the buttons
+            switch (gotClicked) {
+                case "omnivorous":
+                case "vegetarian":
+                case "vegan":
+                    setDiet(prevDiet => {
+                        if (prevDiet.includes(gotClicked)) {
+                            return prevDiet.filter(item => item !== gotClicked);
+                        } else {
+                            return [...prevDiet, gotClicked];
+                        }
+                    });
+                    break;
+    
+                case "breakfast":
+                case "lunch":
+                case "dinner":
+                case "snack":
+                    console.log("inside meals");
+                    setMeal(prevMeal => {
+                        if (prevMeal.includes(gotClicked)) {
+                            return prevMeal.filter(item => item !== gotClicked);
+                        } else {
+                            return [...prevMeal, gotClicked];
+                        }
+                    });
+                    break;
+    
+                case "first":
+                case "main":
+                case "dessert":
+                    console.log("inside course");
+                    setCourse(prevCourse => {
+                        if (prevCourse === gotClicked) {
+                            console.log(course);
+                            return null; // Reset the course if already selected
+                        } else {
+                            console.log(course);
+                            return gotClicked;
+                        }
+                    });
+                    break;
+    
+                default:
+                    console.log("default");
+                    break;
+            }
+        }
+    }    
+    
+
     function handleShowInput(event) {
         event.preventDefault();
         document.getElementById("rec_img").click();
@@ -85,7 +140,8 @@ function AddRecipe(props) {
       }));
     }      
 
-    const jsxToRender = {first:( //handle the file input
+    const jsxToRender = {
+        first:( //handle the file input
         <div id="addRecipeContent">
             <div id="imgInputDiv">
                 <img 
@@ -119,38 +175,86 @@ function AddRecipe(props) {
                 <input type="number" name="fats" placeholder="Fats" />
                 <input type="number" name="carbs" placeholder="Carbohydrates" />
             </div>
-            <h2 className="addRecipeAboveBtnTitle">Add diets:</h2>
-            <button type="button" value="omnivorous" onClick={handleClick} className="addRecipeDietBtn">Omnivorous</button>
-            <button type="button" value="vegetarian" onClick={handleClick} className="addRecipeDietBtn">Vegetarian</button>
-            <button type="button" value="vegan" onClick={handleClick} className="addRecipeDietBtn">Vegan</button>
+            <h2 className="addRecipeAboveBtnTitle">Select all fitting diets:</h2>
+            <button 
+                type="button" 
+                data-value="omnivorous" 
+                onClick={handleClick} 
+                className={diet.includes("omnivorous")? "addRecipeSelectedBtn addRecipeDietBtn": "addRecipeDietBtn"}
+            >
+                Omnivorous
+            </button>
+            <button 
+                type="button" 
+                data-value="vegetarian" 
+                onClick={handleClick} 
+                className={diet.includes("vegetarian")? "addRecipeSelectedBtn addRecipeDietBtn": "addRecipeDietBtn"}
+            >
+                Vegetarian
+            </button>
+            <button 
+                type="button" 
+                data-value="vegan" 
+                onClick={handleClick} 
+                className={diet.includes("vegan")? "addRecipeSelectedBtn addRecipeDietBtn": "addRecipeDietBtn"}
+            >
+                Vegan
+            </button>
         </div>
 
     ), third:(
         <div id="addRecipeContent">
             <h2>Add Ingredients (with the quantity):</h2>
             <div id="ingredientsInputDiv">
-                <input type="text" name="ingredients_input" id="ingredients_input" />
+                <input type="text" name="ingredients_input" id="ingredients_input" placeholder="Ingredients"/>
                 <button type="button" value="add" onClick={handleClick} data-value="add_ingredients">Add</button>
             </div>
             <div id="allergenContainerDiv">
 
             </div>
             <h2 className="addRecipeAboveBtnTitle">Select all the fitting meals:</h2>
-            <button type="button" onClick={handleClick} className="addRecipeMealBtn">Breakfast</button>
-            <button type="button" onClick={handleClick} className="addRecipeMealBtn">Lunch</button>
-            <button type="button" onClick={handleClick} className="addRecipeMealBtn">Dinner</button>
-            <button type="button" onClick={handleClick} className="addRecipeMealBtn">Snack</button>
+            <button 
+                type="button" 
+                onClick={handleClick} 
+                className={meal.includes("breakfast")? "addRecipeSelectedBtn addRecipeMealBtn": "addRecipeMealBtn"}
+                data-value="breakfast"
+            >
+                Breakfast
+            </button>
+            <button 
+            type="button" 
+            onClick={handleClick} 
+            className={meal.includes("lunch")? "addRecipeSelectedBtn addRecipeMealBtn": "addRecipeMealBtn"}
+            data-value="lunch"
+            >
+                Lunch
+            </button>
+            <button 
+            type="button" 
+            onClick={handleClick} 
+            className={meal.includes("dinner")? "addRecipeSelectedBtn addRecipeMealBtn": "addRecipeMealBtn"}
+            data-value="dinner"
+            >
+                Dinner
+            </button>
+            <button 
+            type="button" 
+            onClick={handleClick} 
+            className={meal.includes("snack")? "addRecipeSelectedBtn addRecipeMealBtn": "addRecipeMealBtn"} 
+            data-value="snack"
+            >
+                Snack
+            </button>
         </div>
     ), fourth:(
         <div id="addRecipeContent">
             <h2>Add Procedure:</h2>
             <textarea name="procedure" id="addRecipeProcedure" cols="30" rows="10"></textarea>
             <h2 className="addRecipeAboveBtnTitle">Select all the fitting courses:</h2>
-            <button type="button" className="addRecipeCourseBtn">First Course</button>
-            <button type="button" className="addRecipeCourseBtn">Main Course</button>
-            <button type="button" className="addRecipeCourseBtn">Desser</button>
-            <button type="submit" className="addRecipeCourseBtn">Submit</button>
-        </div>
+            <button type="button" onClick={handleClick}className={course === "first"? "addRecipeSelectedBtn addRecipeCourseBtn": "addRecipeCourseBtn"} data-value="first">First Course</button>
+            <button type="button" onClick={handleClick}className={course === "main"? "addRecipeSelectedBtn addRecipeCourseBtn": "addRecipeCourseBtn"} data-value="main">Main Course</button>
+            <button type="button" onClick={handleClick}className={course === "dessert"? "addRecipeSelectedBtn addRecipeCourseBtn": "addRecipeCourseBtn"} data-value="dessert">Dessert</button>
+        </div>        
     )}
     
     return (
@@ -169,7 +273,7 @@ function AddRecipe(props) {
             {/* "Next" button */}
             {
                 <button type="button" data-value={currentStep} onClick={currentStep !== "fourth"? handleNext : handleSubmit} id="continueBtn">
-                    <img src="" alt="" /> {currentStep !== "fourth"? "Continue" : "Submit"}
+                    {currentStep !== "fourth"? "Continue" : "Submit"}
                 </button>
             }
           </div>
