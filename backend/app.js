@@ -273,6 +273,21 @@ app.post("/testPost", (req, res) => {
     console.log(prevDay);
 });
 
+app.post("/getUsername", async (req, res) => {
+    const { id } = req.body;
+    try {
+        const result = await db.query("SELECT username FROM users WHERE id = $1", [id]);
+        if (result.rows.length === 1) {
+            res.status(200).json({ username: result.rows[0].username }); // Corrected line
+        } else {
+            res.status(404).json({ message: "User not found" });
+        }
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: "Internal server error", error: error });
+    }
+});
+
 
 
 // Authenticate route 

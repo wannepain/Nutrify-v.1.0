@@ -1,6 +1,5 @@
-import React, { useState, useRef } from "react";
-import useWindowDimensions from "../utility/getWindowDimension";
-import TextArea from "./add recipe/TextArea";
+import React, { useState, useRef, useEffect } from "react";
+import axios from "axios";
 
 function AddRecipe(props) {
     const [error, setError] = useState(null);
@@ -24,6 +23,24 @@ function AddRecipe(props) {
     //testing allergen inputs:
     const [specialInputs, setSpecialInputs] = useState({"allergen_input":"", "ingredients_input":""});
     const [specialValues, setSpecialValues] = useState({"allergen_input":[], "ingredients_input":[]});
+    const [username, setUsername] = useState(null)
+
+    useEffect(()=>{
+        const token = localStorage.getItem('jwtToken'); //gets token from local storage
+        const tokenParts = token.split('.');
+        const payload = JSON.parse(atob(tokenParts[1]));
+        async function getUsername() {
+            try {
+                const result = await axios.post("http://localhost:3000/getUsername", {id: payload.id});
+                if (result.data.username) {
+                    setUsername(result.data.username);
+                }
+            } catch (error) {
+                console.log(error);
+            }
+        }
+        getUsername();
+    },[])
 
     function handleRemove(event) {
         console.log(event.currentTarget);
@@ -43,10 +60,49 @@ function AddRecipe(props) {
         
     };
 
-    function handleSubmit(event) { //
+    async function handleSubmit(event) { 
+        // {
+        // "username": "example_user",
+        // "rec_name": "Spaghetti Carbonara",
+        // "rec_img": "https://example.com/spaghetti_carbonara.jpg",
+        // "ingredients": ["spaghetti", "bacon", "eggs", "parmesan cheese", "black pepper"],
+        // "procedure": "1. Cook spaghetti according to package instructions. 2. Fry bacon until crispy. 3. Beat eggs and mix with grated parmesan cheese. 4.   Toss cooked spaghetti with bacon and egg mixture. 5. Season with black pepper. 6. Serve hot.",
+        // "allergies": ["None"],
+        // "diet": ["None"],
+        // "calories": 600,
+        // "proteins": 25,
+        // "carbs": 70,
+        // "fats": 28
+        // "meal": "lunch" or "breakfast" or "dinner"
+        // "course": "first" or "main" or "desert"
+        // "description": recipe description, the shorter, the better
+    //   }
+
         console.log("sumbit prevented"); 
         event.preventDefault();
         //make an axios post handle errors 
+        console.log(username);
+        try {
+            const result = await axios.post("http://localhost:3000/add/recipe", [{
+                "username": username,
+                "rec_name": recipeInfo.rec_name,
+                "rec_img": addedImg,
+                "ingredients": specialValues.ingredients_input,
+                "procedure": recipeInfo.procedure,
+                "allergies": specialValues.allergen_input,
+                "diet": diet,
+                "calories": recipeInfo.cals,
+                "proteins": recipeInfo.prots,
+                "carbs": recipeInfo.carbs,
+                "fats": recipeInfo.fats,
+                "meal": meal,
+                "course": course,
+                "description": recipeInfo.rec_description
+            }])
+            console.log(result);
+        } catch (error) {
+            console.log(error);
+        }
     }
 
     function handleClick(event) {
@@ -57,6 +113,7 @@ function AddRecipe(props) {
             if (gotClicked === "add_allergen") {
                 if (specialValues["allergen_input"].includes(specialInputs.allergen_input)) {// check if already added
                     //write error message to the user
+                    setError("Allergen already added");
                     setSpecialInputs((prevInput)=>(
                         {
                             ...prevInput,
@@ -64,7 +121,6 @@ function AddRecipe(props) {
                         }
                     ));
                 } else if (isValueInDatalist(specialInputs.allergen_input, "allergens_list")){
-                    setError("Allergen already added")
                     setSpecialValues((prevValue)=>(
                         {
                             ...prevValue,
@@ -231,6 +287,7 @@ function AddRecipe(props) {
                     return; // Exit early if fields are missing
                 }
                 nextPart = "second";
+                setError(null);
                 break;
     
             case "second":
@@ -239,14 +296,16 @@ function AddRecipe(props) {
                     return; // Exit early if fields are missing
                 }
                 nextPart = "third";
+                setError(null);
                 break;
     
             case "third":
-                if (!specialValues["ingredients_input".length || !meal.length]) {
+                if (!specialValues["ingredients_input"].length || !meal.length) {
                     setError("Please fill in all required fields.");
                     return; // Exit early if fields are missing
                 }
                 nextPart = "fourth";
+                setError(null);
                 break;
     
             default:
