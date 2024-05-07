@@ -22,16 +22,29 @@ function AddRecipe(props) {
     const [meal, setMeal] = useState([]);
     const [course, setCourse] = useState(null);
     //testing allergen inputs:
-    const [allergenInput, setAllergenInput] = useState('');
-    const [isMatch, setIsMatch] = useState(false); //not needed
-    const [allergens, setAllergens] = useState([]);
-    const prevAllergens = useRef([]);
+    const [specialInputs, setSpecialInputs] = useState({"allergen_input":"", "ingredients_input":""});
+    const [specialValues, setSpecialValues] = useState({"allergen_input":[], "ingredients_input":[]});
 
-    function handleRemove(allergenToRemove) {
-        setAllergens(prevAllergens => prevAllergens.filter(allergen => allergen !== allergenToRemove));
-    }
+    function handleRemove(event) {
+        console.log(event.currentTarget);
+        const gotClicked = event.currentTarget.getAttribute('data-value');
+        const elementToRemove = event.currentTarget.value;
+        if (gotClicked === "allergen_btn") { //allergen
+            setSpecialValues(prevValue => ({
+                ...prevValue,
+                allergen_input: prevValue.allergen_input.filter(allergen => allergen !== elementToRemove)
+            }));
+        } else { //ingredient
+            setSpecialValues(prevValue => ({
+                ...prevValue,
+                ingredients_input: prevValue.ingredients_input.filter(ingredient => ingredient !== elementToRemove)
+            }));
+        }
+        
+    };
 
-    function handleSubmit(event) {
+    function handleSubmit(event) { //
+        console.log("sumbit prevented"); 
         event.preventDefault();
         //make an axios post handle errors 
     }
@@ -42,20 +55,56 @@ function AddRecipe(props) {
         if (gotClicked === "add_allergen" || gotClicked === "add_ingredients") {
             // Special code
             if (gotClicked === "add_allergen") {
-                if (allergens.includes(allergenInput)) {
-                    setIsMatch(true); // allergens is already added
+                if (specialValues["allergen_input"].includes(specialInputs.allergen_input)) {// check if already added
                     //write error message to the user
-                    setAllergenInput("");
-                } else if (isValueInDatalist(allergenInput, "allergens_list")){
-                    setIsMatch(false);
-                    setAllergens(prevAllergens => [...prevAllergens, allergenInput]);
-                    setAllergenInput('');
+                    setSpecialInputs((prevInput)=>(
+                        {
+                            ...prevInput,
+                            "allergen_input": ""
+                        }
+                    ));
+                } else if (isValueInDatalist(specialInputs.allergen_input, "allergens_list")){
+                    // setAllergens(prevAllergens => [...prevAllergens, specialInputs.allergen_input]);
+                    setSpecialValues((prevValue)=>(
+                        {
+                            ...prevValue,
+                            allergen_input: [...prevValue.allergen_input, specialInputs.allergen_input]
+                        }
+                    ));
+                    setSpecialInputs((prevInput)=>(
+                        {
+                            ...prevInput,
+                            "allergen_input": ""
+                        }
+                    ));
                 } else{ //allergen not found in datalist
                     //write error message to the user
                     console.log("not in datalist");
                 }
             } else {
                 // Handle adding ingredients if needed
+                if (specialValues["ingredients_input"].includes(specialInputs.ingredients_input)) {// check if already added
+                    //write error message to the user
+                    setSpecialInputs((prevInput)=>(
+                        {
+                            ...prevInput,
+                            "ingredients_input": ""
+                        }
+                    ));
+                } else{
+                    setSpecialValues((prevValue)=>(
+                        {
+                            ...prevValue,
+                            ingredients_input: [...prevValue.ingredients_input, specialInputs.ingredients_input]
+                        }
+                    ));
+                    setSpecialInputs((prevInput)=>(
+                        {
+                            ...prevInput,
+                            "ingredients_input": ""
+                        }
+                    ));
+                }
             }
         } else {
             // Code for all the buttons
@@ -112,9 +161,13 @@ function AddRecipe(props) {
         const gotChanged = event.currentTarget.getAttribute("name");
         const valueOfChange = event.currentTarget.value;
 
-        if (gotChanged === "allergen_input" || gotChanged === "ingredients_input") {
-            // code for special inputs
-            setAllergenInput(valueOfChange.toLowerCase());
+        if (gotChanged === "allergen_input" || gotChanged === "ingredients_input") { // works for both cases 
+            setSpecialInputs((prevInput)=>(
+                {
+                    ...prevInput,
+                    [gotChanged]:valueOfChange.toLowerCase()
+                }
+            ));
         } else {
             //other inputs
             setRecipeInfo((prevInfo)=>(
@@ -224,13 +277,13 @@ function AddRecipe(props) {
         <div id="addRecipeContent">
             <h2>Add allergens:</h2>
             <div id="allergenInputDiv">
-                <input type="text" list="allergens_list" name="allergen_input" id="allergen_input" placeholder="Allergens" onChange={handleInputChange} value={allergenInput}/>
+                <input type="text" list="allergens_list" name="allergen_input" id="allergen_input" placeholder="Allergens" onChange={handleInputChange} value={specialInputs.allergen_input}/>
                 <button type="button" value="add" onClick={handleClick} data-value="add_allergen">Add</button>
             </div>
             <div id="allergenContainerDiv">
-                {allergens.map(allergen => (
+                {specialValues["allergen_input"].map(allergen => (
                     <React.Fragment key={allergen}>
-                        <button onClick={() => handleRemove(allergen)} className="allergenBtn">{allergen}</button>
+                        <button onClick={handleRemove} className="addRecipeElementBtn" data-value="allergen_btn" value={allergen}>{allergen}</button>
                     </React.Fragment>
                 ))}
             </div>
@@ -467,11 +520,15 @@ function AddRecipe(props) {
         <div id="addRecipeContent">
             <h2>Add Ingredients (with the quantity):</h2>
             <div id="ingredientsInputDiv">
-                <input type="text" name="ingredients_input" id="ingredients_input" placeholder="Ingredients"/>
+                <input type="text" name="ingredients_input" id="ingredients_input" placeholder="Ingredients" onChange={handleInputChange} value={specialInputs.ingredients_input}/>
                 <button type="button" value="add" onClick={handleClick} data-value="add_ingredients">Add</button>
             </div>
             <div id="allergenContainerDiv">
-
+                {specialValues["ingredients_input"].map(ingredient => (
+                    <React.Fragment key={ingredient}>
+                        <button onClick={handleRemove} className="addRecipeElementBtn" data-value="ingredients_btn" value={ingredient}>{ingredient}</button>
+                    </React.Fragment>
+                ))}
             </div>
             <h2 className="addRecipeAboveBtnTitle">Select all the fitting meals:</h2>
             <button 
