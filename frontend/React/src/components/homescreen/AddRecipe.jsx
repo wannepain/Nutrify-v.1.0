@@ -3,18 +3,18 @@ import useWindowDimensions from "../utility/getWindowDimension";
 import TextArea from "./add recipe/TextArea";
 
 function AddRecipe(props) {
-    const { width } = useWindowDimensions();
+    const [error, setError] = useState(null);
     const [addedImg, setAddedImg] = useState(null)
     const [isDone, setIsDone] = useState({"first": false, "second": false, "third": false, "fourth": false});
     const [currentStep, setCurrentStep] = useState("first");
     const [recipeInfo, setRecipeInfo] = useState({
-        "rec_name": null,
-        "rec_description": null,
-        "cals": null,
-        "prots": null,
-        "fats": null,
-        "carbs": null,
-        "procedure": null,
+        "rec_name": "",
+        "rec_description": "",
+        "cals": "",
+        "prots": "",
+        "fats": "",
+        "carbs": "",
+        "procedure": "",
         "allergies": [] // Initialize as an empty array
     });
     // const [selectedBtns, setSelectedBtns] = useState({diet: [], meal: [], course: null});
@@ -64,7 +64,7 @@ function AddRecipe(props) {
                         }
                     ));
                 } else if (isValueInDatalist(specialInputs.allergen_input, "allergens_list")){
-                    // setAllergens(prevAllergens => [...prevAllergens, specialInputs.allergen_input]);
+                    setError("Allergen already added")
                     setSpecialValues((prevValue)=>(
                         {
                             ...prevValue,
@@ -78,13 +78,13 @@ function AddRecipe(props) {
                         }
                     ));
                 } else{ //allergen not found in datalist
-                    //write error message to the user
+                    setError("Invalid Allergen")
                     console.log("not in datalist");
                 }
             } else {
                 // Handle adding ingredients if needed
                 if (specialValues["ingredients_input"].includes(specialInputs.ingredients_input)) {// check if already added
-                    //write error message to the user
+                    setError("Ingredient already added");
                     setSpecialInputs((prevInput)=>(
                         {
                             ...prevInput,
@@ -221,30 +221,46 @@ function AddRecipe(props) {
       }
       
     function handleNext(event) {
-      const currentPart = event.currentTarget.getAttribute("data-value");
-      let nextPart;
-      switch (currentPart) {
-        case "first":
-            nextPart = "second";
-            break;
-        case "second":
-            nextPart = "third";
-            break;
-        case "third":
-            nextPart = "fourth";
-            break;
-
-        default:
-            nextPart = "second"
-            break;
-      }
-      setCurrentStep(nextPart);
-      setIsDone((prevDone) => ({
-        ...prevDone,
-        [currentPart]: true,
-      }));
-    }      
-
+        const currentPart = event.currentTarget.getAttribute("data-value");
+        let nextPart;
+    
+        switch (currentPart) {
+            case "first":
+                if (!recipeInfo.rec_name || !recipeInfo.rec_description || !addedImg) {
+                    setError("Please fill in all required fields.");
+                    return; // Exit early if fields are missing
+                }
+                nextPart = "second";
+                break;
+    
+            case "second":
+                if (!specialValues["allergen_input"].length || !recipeInfo.cals || !diet.length) {
+                    setError("Please fill in all required fields.");
+                    return; // Exit early if fields are missing
+                }
+                nextPart = "third";
+                break;
+    
+            case "third":
+                if (!specialValues["ingredients_input".length || !meal.length]) {
+                    setError("Please fill in all required fields.");
+                    return; // Exit early if fields are missing
+                }
+                nextPart = "fourth";
+                break;
+    
+            default:
+                nextPart = "second";
+                break;
+        }
+    
+        setCurrentStep(nextPart);
+        setIsDone(prevDone => ({
+            ...prevDone,
+            [currentPart]: true,
+        }));
+    }
+    
 
     //utility functions:
     function isValueInDatalist(value, datalistId) {
@@ -588,6 +604,8 @@ function AddRecipe(props) {
             </div>
             {/* Render the current step */}
             {jsxToRender[currentStep]}
+            {/* ERROR MESSAGES: */}
+            {error && <h2 id="addRecipeErrorMessage">{error}</h2>}
             {/* "Next" button */}
             {
                 <button type="button" data-value={currentStep} onClick={currentStep !== "fourth"? handleNext : handleSubmit} id="continueBtn">
