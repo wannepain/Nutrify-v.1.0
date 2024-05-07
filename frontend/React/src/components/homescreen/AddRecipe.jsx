@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import useWindowDimensions from "../utility/getWindowDimension";
 import TextArea from "./add recipe/TextArea";
 
@@ -7,7 +7,6 @@ function AddRecipe(props) {
     const [addedImg, setAddedImg] = useState(null)
     const [isDone, setIsDone] = useState({"first": false, "second": false, "third": false, "fourth": false});
     const [currentStep, setCurrentStep] = useState("first");
-    // const [recipeInfo, setRecipeInfo] = useState({"rec_name": null, "rec_description": null, "cals":null, "prots":null, "fats":null, "carbs":null, "procedure":null, "allergies":[]});
     const [recipeInfo, setRecipeInfo] = useState({
         "rec_name": null,
         "rec_description": null,
@@ -22,6 +21,16 @@ function AddRecipe(props) {
     const [diet, setDiet] = useState([]);
     const [meal, setMeal] = useState([]);
     const [course, setCourse] = useState(null);
+    //testing allergen inputs:
+    const [allergenInput, setAllergenInput] = useState('');
+    const [isMatch, setIsMatch] = useState(false); //not needed
+    const [allergens, setAllergens] = useState([]);
+    const prevAllergens = useRef([]);
+
+    function handleRemove(allergenToRemove) {
+        setAllergens(prevAllergens => prevAllergens.filter(allergen => allergen !== allergenToRemove));
+    }
+
     function handleSubmit(event) {
         event.preventDefault();
         //make an axios post handle errors 
@@ -33,12 +42,17 @@ function AddRecipe(props) {
         if (gotClicked === "add_allergen" || gotClicked === "add_ingredients") {
             // Special code
             if (gotClicked === "add_allergen") {
-                const userInput = document.getElementById("allergen_input").value;
-                if (recipeInfo['allergies'].includes(userInput)) {
-                    document.getElementById("allergen_input").value = "";
-                } else {
-                    recipeInfo.allergies.push(userInput);
-                    document.getElementById("allergen_input").value = "";
+                if (allergens.includes(allergenInput)) {
+                    setIsMatch(true); // allergens is already added
+                    //write error message to the user
+                    setAllergenInput("");
+                } else if (isValueInDatalist(allergenInput, "allergens_list")){
+                    setIsMatch(false);
+                    setAllergens(prevAllergens => [...prevAllergens, allergenInput]);
+                    setAllergenInput('');
+                } else{ //allergen not found in datalist
+                    //write error message to the user
+                    console.log("not in datalist");
                 }
             } else {
                 // Handle adding ingredients if needed
@@ -93,21 +107,23 @@ function AddRecipe(props) {
             }
         }
     }    
-    function handleRemove(allergenToRemove) {
-        setAllergens(prevAllergens => prevAllergens.filter(allergen => allergen !== allergenToRemove));
-    }
+    
     function handleInputChange(event) {
         const gotChanged = event.currentTarget.getAttribute("name");
         const valueOfChange = event.currentTarget.value;
-        console.log(gotChanged, valueOfChange);
 
-        setRecipeInfo((prevInfo)=>(
-            {
-                ...prevInfo,
-                [gotChanged]:valueOfChange
-            }
-        ))
-        
+        if (gotChanged === "allergen_input" || gotChanged === "ingredients_input") {
+            // code for special inputs
+            setAllergenInput(valueOfChange.toLowerCase());
+        } else {
+            //other inputs
+            setRecipeInfo((prevInfo)=>(
+                {
+                    ...prevInfo,
+                    [gotChanged]:valueOfChange
+                }
+            ));
+        }        
     }
     function handleShowInput(event) {
         event.preventDefault();
@@ -176,6 +192,18 @@ function AddRecipe(props) {
       }));
     }      
 
+
+    //utility functions:
+    function isValueInDatalist(value, datalistId) {
+        const datalist = document.getElementById(datalistId);
+        const options = datalist.querySelectorAll('option');
+        for (let i = 0; i < options.length; i++) {
+            if (options[i].value === value) {
+                return true; // Value found in datalist
+            }
+        }
+        return false; // Value not found in datalist
+    }
     const jsxToRender = {
         first:( //handle the file input
         <div id="addRecipeContent">
@@ -196,11 +224,11 @@ function AddRecipe(props) {
         <div id="addRecipeContent">
             <h2>Add allergens:</h2>
             <div id="allergenInputDiv">
-                <input type="text" name="allergen_input" id="allergen_input" placeholder="Allergens"/>
+                <input type="text" list="allergens_list" name="allergen_input" id="allergen_input" placeholder="Allergens" onChange={handleInputChange} value={allergenInput}/>
                 <button type="button" value="add" onClick={handleClick} data-value="add_allergen">Add</button>
             </div>
             <div id="allergenContainerDiv">
-                {recipeInfo["allergies"].map(allergen => (
+                {allergens.map(allergen => (
                     <React.Fragment key={allergen}>
                         <button onClick={() => handleRemove(allergen)} className="allergenBtn">{allergen}</button>
                     </React.Fragment>

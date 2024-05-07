@@ -960,6 +960,10 @@ input:focus{
             box-shadow: 0px 0px 4px 0px #F3F3F8;
             background-color: #FFC600;
         }
+        #allergenInputDiv input[type=text]::-webkit-calendar-picker-indicator{
+            color: transparent;
+            /*hides the datalist arrow*/
+        }
         /*hides the arrows from number input*/
         /* Chrome, Safari, Edge, Opera */
             input::-webkit-outer-spin-button,
