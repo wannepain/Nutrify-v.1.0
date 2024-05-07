@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 
 function Allergies(props) {
     const [userInput, setUserInput] = useState('');
-    const [isMatch, setIsMatch] = useState(false);
+    const [isMatch, setIsMatch] = useState(false); //not needed
     const [allergens, setAllergens] = useState([]);
     const prevAllergens = useRef([]);
 
