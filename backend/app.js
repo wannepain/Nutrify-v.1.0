@@ -9,6 +9,7 @@ import cors from "cors";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import cookieParser from "cookie-parser";
+import {compressBase64, decompressBase64} from "./utility/Base64SizeRed.js";
 
 const app = Express();
 const port = 3000;
@@ -23,7 +24,7 @@ const db = new pg.Client({
 
 env.config();
 app.use(cookieParser());
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors({
     origin: 'http://localhost:5173',
@@ -192,7 +193,7 @@ app.post("/add/recipe", async (req, res) => {
     // {
     //     "username": "example_user",
     //     "rec_name": "Spaghetti Carbonara",
-    //     "rec_img": "https://example.com/spaghetti_carbonara.jpg",
+    //     "rec_img": base64String, 
     //     "ingredients": ["spaghetti", "bacon", "eggs", "parmesan cheese", "black pepper"],
     //     "procedure": "1. Cook spaghetti according to package instructions. 2. Fry bacon until crispy. 3. Beat eggs and mix with grated parmesan cheese. 4. Toss cooked spaghetti with bacon and egg mixture. 5. Season with black pepper. 6. Serve hot.",
     //     "allergies": ["None"],
@@ -205,15 +206,16 @@ app.post("/add/recipe", async (req, res) => {
     //     "course": "first" or "main" or "desert"
     //     "description": recipe description, the shorter, the better
     //   }
-    const { username, rec_name, rec_img, ingredients, procedure, allergies, diet, calories, proteins, carbs, fats, meal, course, description } = req.body;
+    const { username, rec_name, rec_img, ingredients, procedure, allergies, diet, calories, proteins, carbs, fats, meal, course, description } = JSON.parse(req.body);
     try {
         const userExists = await db.query("SELECT id FROM users WHERE username = $1", [username]);
         if (userExists.rows.length === 0) {
+            console.log("user not found");
             res.status(409).json({ message: "user not found" }); // Assuming you want to return "user not found" for conflict
         } else {
             try {
                 const result = await db.query("INSERT INTO recipes (user_id, rec_name, rec_img, ingredients, procedure, allergies, diet, calories, proteins, carbs, fats, meal, course, description) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)", [
-                    userExists.rows[0].id, rec_name, rec_img, ingredients, procedure, allergies, diet, calories, proteins, carbs, fats, meal, course, description
+                    parseInt(userExists.rows[0].id), rec_name, compressBase64(rec_img), ingredients, procedure, allergies, diet, parseInt(calories), proteins === ""? 0 : parseInt(proteins), carbs === ""? 0 : parseInt(carbs), fats === ""? 0 : parseInt(fats), meal, course, description
                 ]);
                 res.status(200).json({ message: "recipe added successfully" });
             } catch (error) {

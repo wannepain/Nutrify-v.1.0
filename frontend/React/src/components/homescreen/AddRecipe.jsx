@@ -23,7 +23,7 @@ function AddRecipe(props) {
     //testing allergen inputs:
     const [specialInputs, setSpecialInputs] = useState({"allergen_input":"", "ingredients_input":""});
     const [specialValues, setSpecialValues] = useState({"allergen_input":[], "ingredients_input":[]});
-    const [username, setUsername] = useState(null)
+    const [username, setUsername] = useState(null);
 
     useEffect(()=>{
         const token = localStorage.getItem('jwtToken'); //gets token from local storage
@@ -60,30 +60,12 @@ function AddRecipe(props) {
         
     };
 
-    async function handleSubmit(event) { 
-        // {
-        // "username": "example_user",
-        // "rec_name": "Spaghetti Carbonara",
-        // "rec_img": "https://example.com/spaghetti_carbonara.jpg",
-        // "ingredients": ["spaghetti", "bacon", "eggs", "parmesan cheese", "black pepper"],
-        // "procedure": "1. Cook spaghetti according to package instructions. 2. Fry bacon until crispy. 3. Beat eggs and mix with grated parmesan cheese. 4.   Toss cooked spaghetti with bacon and egg mixture. 5. Season with black pepper. 6. Serve hot.",
-        // "allergies": ["None"],
-        // "diet": ["None"],
-        // "calories": 600,
-        // "proteins": 25,
-        // "carbs": 70,
-        // "fats": 28
-        // "meal": "lunch" or "breakfast" or "dinner"
-        // "course": "first" or "main" or "desert"
-        // "description": recipe description, the shorter, the better
-    //   }
 
-        console.log("sumbit prevented"); 
+    async function handleSubmit(event) { 
         event.preventDefault();
         //make an axios post handle errors 
-        console.log(username);
         try {
-            const result = await axios.post("http://localhost:3000/add/recipe", [{
+            const result = await axios.post("http://localhost:3000/add/recipe", [JSON.stringify({
                 "username": username,
                 "rec_name": recipeInfo.rec_name,
                 "rec_img": addedImg,
@@ -98,10 +80,37 @@ function AddRecipe(props) {
                 "meal": meal,
                 "course": course,
                 "description": recipeInfo.rec_description
-            }])
-            console.log(result);
+            })]);
+            if (result.status === 200) { // resets all the useStates
+                setCurrentStep("successAdd");
+                setTimeout(()=>{
+                    setError(null);
+                    setAddedImg(null);
+                    setCurrentStep("first");
+                    setRecipeInfo({
+                        "rec_name": "",
+                        "rec_description": "",
+                        "cals": "",
+                        "prots": "",
+                        "fats": "",
+                        "carbs": "",
+                        "procedure": "",
+                        "allergies": [] // Initialize as an empty array
+                    });
+                    setDiet([]);
+                    setMeal([]);
+                    setCourse(null);
+                    setSpecialInputs({"allergen_input":"", "ingredients_input":""});
+                    setSpecialValues({"allergen_input":[], "ingredients_input":[]});
+                    setUsername(null);
+                }, 5 * 1000);
+            } 
         } catch (error) {
-            console.log(error);
+            if (error.response.status === 409) {
+                setError("Recipe already added");
+            } else {
+                setError("Internal server Error, please try again later");
+            }
         }
     }
 
@@ -244,6 +253,7 @@ function AddRecipe(props) {
 
         reader.onload = function(event) {
             const imageDataUrl = event.target.result; // Get the base64 encoded data URL
+            console.log(imageDataUrl);
             setAddedImg(imageDataUrl); // Set the selected image as base64 encoded data
         };
 
@@ -648,6 +658,12 @@ function AddRecipe(props) {
             <button type="button" onClick={handleClick}className={course === "main"? "addRecipeSelectedBtn addRecipeCourseBtn": "addRecipeCourseBtn"} data-value="main">Main Course</button>
             <button type="button" onClick={handleClick}className={course === "dessert"? "addRecipeSelectedBtn addRecipeCourseBtn": "addRecipeCourseBtn"} data-value="dessert">Dessert</button>
         </div>        
+    ), successAdd: (
+        <div id="addRecipeContent">
+            <h1 id="addRecipeSuccessh1">Recipe added succesfully</h1>
+            <p id="addRecipeThanksP">Thank you very much for your submission</p>
+            <p id="addRecipeRedirectInfo">You will be redirected in 5 seconds</p>
+        </div>
     )}
     
     return (
@@ -666,7 +682,7 @@ function AddRecipe(props) {
             {/* ERROR MESSAGES: */}
             {error && <h2 id="addRecipeErrorMessage">{error}</h2>}
             {/* "Next" button */}
-            {
+            { currentStep !== "successAdd" &&
                 <button type="button" data-value={currentStep} onClick={currentStep !== "fourth"? handleNext : handleSubmit} id="continueBtn">
                     {currentStep !== "fourth"? "Continue" : "Submit"}
                 </button>
