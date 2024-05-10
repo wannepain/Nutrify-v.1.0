@@ -37,6 +37,7 @@ function RecipeCard(props) {
         setIsSmallScreen(width < 720);
     }, [width]);
 
+
     function handleClick(event) {
         const dataOfClicked = event.currentTarget.getAttribute('data-value');
         props.setIsRecipeClicked(dataOfClicked);
@@ -50,7 +51,7 @@ function RecipeCard(props) {
                     {recipeData.map((currentData,index)=>(
                         <div className="inlineRecipeContainer" key={index}>
                             <div className="imgTitleContainer">
-                                <img src={currentData.rec_img} alt={currentData.rec_name}/>
+                                <img src={currentData.rec_img} alt={currentData.rec_name} />
                                 <div className="procNameContainer">
                                     <div className="recipeNameContainer">
                                         <h2>{currentData.rec_name}</h2>

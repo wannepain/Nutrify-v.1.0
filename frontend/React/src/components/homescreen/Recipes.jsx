@@ -17,7 +17,7 @@ function Recipes(props) {
 
   useEffect(() => {
       setIsSmallScreen(width < 720);
-      console.log(props.ogRecipes, recipesArray);
+      // console.log(props.ogRecipes, recipesArray);
   }, [width]);
 
 

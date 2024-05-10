@@ -53,7 +53,7 @@ function Homescreen(props) {
           source.cancel('Component unmounted'); // Cancel the request on component unmount
         };
       }, []);
-
+      console.log(recipes, ogRecipes);
     return <div id="homescreenDiv" className={!isOnHomescreen && "homescreenCenter"}>
         {isOnHomescreen? <Recipes recipesArray={recipes} ogRecipes={ogRecipes}/> : <AddRecipe />}
         <NavBar setIsOnHomescreen={setIsOnHomescreen}/>
