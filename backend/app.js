@@ -178,8 +178,7 @@ app.post("/add/recipe", async (req, res) => {
 });
 
 app.post("/weeklyRecipes", async (req, res) => {
-    const { id } = idFromHeader(req.headers.authorization);
-    // const id = req.body.id
+    const { id } = idFromHeader(req.headers.authorization)
     // console.log(id);
     try {
         // const id = 3;

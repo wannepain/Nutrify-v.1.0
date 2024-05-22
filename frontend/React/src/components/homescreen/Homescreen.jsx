@@ -3,6 +3,7 @@ import axios from "axios";
 import NavBar from "./NavBar";
 import Recipes from "./Recipes";
 import AddRecipe from "./AddRecipe";
+import Recipes2 from "./Recipes2";
 function Homescreen(props) {
   const [recipes, setRecipes]= useState(null);
   const [ogRecipes, setOgRecipes] = useState(null);
@@ -55,7 +56,7 @@ function Homescreen(props) {
       }, []);
       console.log(recipes, ogRecipes);
     return <div id="homescreenDiv" className={!isOnHomescreen && "homescreenCenter"}>
-        {isOnHomescreen? <Recipes recipesArray={recipes} ogRecipes={ogRecipes}/> : <AddRecipe />}
+        {isOnHomescreen? <Recipes2 recipesArray={recipes} ogRecipes={ogRecipes}/> : <AddRecipe />}
         <NavBar setIsOnHomescreen={setIsOnHomescreen}/>
       </div>
 }
